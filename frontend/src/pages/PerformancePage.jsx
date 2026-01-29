@@ -201,46 +201,48 @@ const PerformancePage = () => {
                             No performers found for the selected filters.
                         </div>
                     ) : (
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Rank</th>
-                                    <th>Seller</th>
-                                    <th>City</th>
-                                    <th>Total Revenue</th>
-                                    <th>Commission</th>
-                                    <th>Sales</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {performers.map((performer, index) => (
-                                    <tr key={performer._id}>
-                                        <td>
-                                            <span className={`rank-badge ${index < 3 ? `top-${index + 1}` : ''}`}>
-                                                #{index + 1}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div className="cell-user">
-                                                <div className="cell-user-avatar">
-                                                    {getInitials(performer.name)}
-                                                </div>
-                                                <div className="cell-user-info">
-                                                    <span>{performer.name}</span>
-                                                    <span>{performer.email || '-'}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>{performer.city || '-'}</td>
-                                        <td style={{ fontWeight: 600, color: 'var(--primary-brand)' }}>
-                                            ₹{performer.totalRevenue?.toLocaleString() || 0}
-                                        </td>
-                                        <td>₹{performer.totalCommission?.toLocaleString() || 0}</td>
-                                        <td>{performer.salesCount || 0}</td>
+                        <div className="table-container">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Seller</th>
+                                        <th>City</th>
+                                        <th>Total Revenue</th>
+                                        <th>Commission</th>
+                                        <th>Sales</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {performers.map((performer, index) => (
+                                        <tr key={performer._id}>
+                                            <td>
+                                                <span className={`rank-badge ${index < 3 ? `top-${index + 1}` : ''}`}>
+                                                    #{index + 1}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className="cell-user">
+                                                    <div className="cell-user-avatar">
+                                                        {getInitials(performer.name)}
+                                                    </div>
+                                                    <div className="cell-user-info">
+                                                        <span>{performer.name}</span>
+                                                        <span>{performer.email || '-'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{performer.city || '-'}</td>
+                                            <td style={{ fontWeight: 600, color: 'var(--primary-brand)' }}>
+                                                ₹{performer.totalRevenue?.toLocaleString() || 0}
+                                            </td>
+                                            <td>₹{performer.totalCommission?.toLocaleString() || 0}</td>
+                                            <td>{performer.salesCount || 0}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>

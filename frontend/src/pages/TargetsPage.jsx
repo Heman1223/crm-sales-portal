@@ -92,7 +92,7 @@ const TargetsPage = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>{isAdmin ? 'Manage Targets' : 'My Targets'}</h1>
                         <p>Set and track monthly sales targets</p>
@@ -275,7 +275,7 @@ const TargetsPage = () => {
             <style>{`
         .targets-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 24px;
         }
         .target-card {

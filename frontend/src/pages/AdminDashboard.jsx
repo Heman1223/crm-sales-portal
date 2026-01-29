@@ -149,7 +149,7 @@ const AdminDashboard = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>Admin Dashboard</h1>
                         <p>Welcome back! Here's an overview of your sales performance.</p>

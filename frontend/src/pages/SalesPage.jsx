@@ -273,7 +273,7 @@ const SalesPage = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>{isAdmin ? 'All Sales' : 'My Sales'}</h1>
                         <p>Track and manage sales transactions</p>

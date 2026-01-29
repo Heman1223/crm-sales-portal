@@ -83,7 +83,7 @@ const CommissionsPage = () => {
             header: 'Status',
             render: (row) => (
                 <span className={`badge ${row.status === 'Completed' ? 'badge-success' :
-                        row.status === 'Pending' ? 'badge-warning' : 'badge-muted'
+                    row.status === 'Pending' ? 'badge-warning' : 'badge-muted'
                     }`}>
                     {row.status}
                 </span>
@@ -115,12 +115,12 @@ const CommissionsPage = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>{isAdmin ? 'All Commissions' : 'My Commissions'}</h1>
                         <p>Track commission earnings and payment status</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                         <select
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(Number(e.target.value))}

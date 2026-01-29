@@ -127,7 +127,7 @@ const SellerDashboard = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>Welcome, {user?.name?.split(' ')[0] || 'Seller'}!</h1>
                         <p>Track your sales performance, commissions, and rankings.</p>

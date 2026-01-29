@@ -180,7 +180,7 @@ const ServicesPage = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>Services</h1>
                         <p>Manage service packages and their commission rates</p>
@@ -223,7 +223,7 @@ const ServicesPage = () => {
                             />
                             Show Inactive
                         </label>
-                        <div className="navbar-search" style={{ width: '280px' }}>
+                        <div className="navbar-search" style={{ width: '100%', maxWidth: '280px' }}>
                             <Search className="navbar-search-icon" />
                             <input
                                 type="text"

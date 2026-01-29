@@ -229,6 +229,7 @@ const HelpPage = () => {
         }
         .help-contact-actions {
           display: flex;
+          flex-wrap: wrap;
           justify-content: center;
           gap: 16px;
         }

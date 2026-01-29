@@ -132,7 +132,7 @@ const ReportsPage = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>Reports</h1>
                         <p>Generate and export reports</p>
@@ -278,6 +278,7 @@ const ReportsPage = () => {
             <style>{`
         .report-types {
           display: flex;
+          flex-wrap: wrap;
           gap: 16px;
           margin-bottom: 24px;
         }

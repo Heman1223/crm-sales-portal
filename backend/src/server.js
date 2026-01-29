@@ -44,7 +44,8 @@ app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 // Catch-all handler: For any request that doesn't match an API route,
 // send back the React app's index.html file (for SPA routing)
-app.get('*', (req, res) => {
+// Using '{*splat}' syntax for Express 5 compatibility
+app.get('/{*splat}', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 

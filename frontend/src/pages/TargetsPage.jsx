@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { Target, Plus, Calendar, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { targetsAPI, usersAPI } from '../utils/api';
+import { useToast } from '../components/common/Toast';
 
 const TargetsPage = () => {
     const { user, isAdmin } = useAuth();
+    const toast = useToast();
     const [targets, setTargets] = useState([]);
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -66,6 +68,7 @@ const TargetsPage = () => {
                 targetPremiumSales: Number(formData.targetPremiumSales)
             });
 
+            toast.success('Target set successfully!');
             setShowModal(false);
             setFormData({
                 seller: '',
@@ -75,7 +78,7 @@ const TargetsPage = () => {
             });
             fetchTargets();
         } catch (error) {
-            alert(error.response?.data?.message || 'Error saving target');
+            toast.error(error.response?.data?.message || 'Error saving target');
         }
     };
 

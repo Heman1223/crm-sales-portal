@@ -12,12 +12,13 @@ import {
     Target,
     Award,
     ShoppingCart,
-    Package
+    Package,
+    X
 } from 'lucide-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = ({ userRole = 'admin' }) => {
+const Sidebar = ({ userRole = 'admin', isOpen = false, onClose = () => { } }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -57,7 +58,7 @@ const Sidebar = ({ userRole = 'admin' }) => {
     const userTitle = userRole === 'admin' ? 'Admin Manager' : 'Sales Executive';
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
             <div className="sidebar-header">
                 <div className="sidebar-logo">
                     <img
@@ -76,6 +77,13 @@ const Sidebar = ({ userRole = 'admin' }) => {
                         <span>Enterprise CRM</span>
                     </div>
                 </div>
+                <button
+                    className="sidebar-close-btn"
+                    onClick={onClose}
+                    aria-label="Close sidebar"
+                >
+                    <X size={24} />
+                </button>
             </div>
 
             <nav className="sidebar-nav">

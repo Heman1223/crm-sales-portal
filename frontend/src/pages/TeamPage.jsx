@@ -11,8 +11,10 @@ import {
 } from 'lucide-react';
 import { usersAPI } from '../utils/api';
 import DataTable from '../components/dashboard/DataTable';
+import { useToast } from '../components/common/Toast';
 
 const TeamPage = () => {
+    const toast = useToast();
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -83,10 +85,12 @@ const TeamPage = () => {
                     data.password = formData.password;
                 }
                 await usersAPI.update(editingSeller._id, data);
+                toast.success('Seller updated successfully!');
             } else {
                 // Password required for new seller
                 data.password = formData.password;
                 await usersAPI.create(data);
+                toast.success('Seller added successfully!');
             }
 
             setShowModal(false);
@@ -94,7 +98,7 @@ const TeamPage = () => {
             resetForm();
             fetchSellers();
         } catch (error) {
-            alert(error.response?.data?.message || 'Error saving seller');
+            toast.error(error.response?.data?.message || 'Error saving seller');
         }
     };
 
@@ -116,9 +120,10 @@ const TeamPage = () => {
         if (window.confirm(`Are you sure you want to ${action} ${seller.name}?`)) {
             try {
                 await usersAPI.update(seller._id, { isActive: !seller.isActive });
+                toast.success(`Seller ${action}d successfully!`);
                 fetchSellers();
             } catch (error) {
-                alert(error.response?.data?.message || `Error ${action}ing seller`);
+                toast.error(error.response?.data?.message || `Error ${action}ing seller`);
             }
         }
     };

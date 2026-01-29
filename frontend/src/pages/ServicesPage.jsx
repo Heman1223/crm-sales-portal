@@ -12,8 +12,10 @@ import {
 } from 'lucide-react';
 import { servicesAPI } from '../utils/api';
 import DataTable from '../components/dashboard/DataTable';
+import { useToast } from '../components/common/Toast';
 
 const ServicesPage = () => {
+    const toast = useToast();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -74,8 +76,10 @@ const ServicesPage = () => {
 
             if (editingService) {
                 await servicesAPI.update(editingService._id, data);
+                toast.success('Service updated successfully!');
             } else {
                 await servicesAPI.create(data);
+                toast.success('Service added successfully!');
             }
 
             setShowModal(false);
@@ -83,7 +87,7 @@ const ServicesPage = () => {
             resetForm();
             fetchServices();
         } catch (error) {
-            alert(error.response?.data?.message || 'Error saving service');
+            toast.error(error.response?.data?.message || 'Error saving service');
         }
     };
 
@@ -103,9 +107,10 @@ const ServicesPage = () => {
         if (window.confirm(`Are you sure you want to ${action} "${service.name}"?`)) {
             try {
                 await servicesAPI.update(service._id, { isActive: !service.isActive });
+                toast.success(`Service ${action}d successfully!`);
                 fetchServices();
             } catch (error) {
-                alert(error.response?.data?.message || `Error ${action}ing service`);
+                toast.error(error.response?.data?.message || `Error ${action}ing service`);
             }
         }
     };

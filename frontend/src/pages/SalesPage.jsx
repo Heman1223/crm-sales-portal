@@ -10,9 +10,11 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { salesAPI, usersAPI, servicesAPI } from '../utils/api';
 import DataTable from '../components/dashboard/DataTable';
+import { useToast } from '../components/common/Toast';
 
 const SalesPage = () => {
     const { user, isAdmin } = useAuth();
+    const toast = useToast();
     const [sales, setSales] = useState([]);
     const [sellers, setSellers] = useState([]);
     const [services, setServices] = useState([]);
@@ -128,8 +130,10 @@ const SalesPage = () => {
                     saleData.status = formData.status;
                 }
                 await salesAPI.update(editingSale._id, saleData);
+                toast.success('Sale updated successfully!');
             } else {
                 await salesAPI.create(saleData);
+                toast.success('Sale logged successfully!');
             }
 
             setShowModal(false);
@@ -141,7 +145,7 @@ const SalesPage = () => {
             const errorMsg = errorData?.message || 'Error saving sale';
             const validationErrors = errorData?.validationErrors?.join(', ') || '';
             const detailedError = errorData?.error || '';
-            alert(`${errorMsg}${validationErrors ? ` (Fields: ${validationErrors})` : ''}${detailedError ? ` - ${detailedError}` : ''}`);
+            toast.error(`${errorMsg}${validationErrors ? ` (Fields: ${validationErrors})` : ''}${detailedError ? ` - ${detailedError}` : ''}`);
             console.error('Sale error details:', errorData);
         }
     };
@@ -176,9 +180,10 @@ const SalesPage = () => {
         if (window.confirm('Are you sure you want to delete this sale?')) {
             try {
                 await salesAPI.delete(id);
+                toast.success('Sale deleted successfully!');
                 fetchSales();
             } catch (error) {
-                alert(error.response?.data?.message || 'Error deleting sale');
+                toast.error(error.response?.data?.message || 'Error deleting sale');
             }
         }
     };

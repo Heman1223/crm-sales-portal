@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, ChevronDown, LogOut, Check } from 'lucide-react';
+import { Bell, ChevronDown, LogOut, Check, Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { salesAPI } from '../../utils/api';
 
-const Navbar = ({ title = 'Dashboard' }) => {
+const Navbar = ({ title = 'Dashboard', onMenuToggle = () => { } }) => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
@@ -70,6 +70,13 @@ const Navbar = ({ title = 'Dashboard' }) => {
     return (
         <header className="navbar">
             <div className="navbar-left">
+                <button
+                    className="hamburger-btn"
+                    onClick={onMenuToggle}
+                    aria-label="Toggle menu"
+                >
+                    <Menu size={24} />
+                </button>
                 <h2 className="navbar-title">{title}</h2>
             </div>
 

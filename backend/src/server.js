@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -25,7 +26,7 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ Connected to MongoDB'))
     .catch(err => console.error('❌ MongoDB connection error:', err));
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sales', salesRoutes);
@@ -36,6 +37,15 @@ app.use('/api/services', serviceRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'CRM API is running' });
+});
+
+// Serve static files from the React frontend build
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+// Catch-all handler: For any request that doesn't match an API route,
+// send back the React app's index.html file (for SPA routing)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
 });
 
 // Error handling middleware

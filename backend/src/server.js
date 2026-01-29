@@ -39,15 +39,32 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'CRM API is running' });
 });
 
-// Serve static files from the React frontend build
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+// Path to frontend build
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+const indexHtmlPath = path.join(frontendDistPath, 'index.html');
 
-// Catch-all handler: For any request that doesn't match an API route,
-// send back the React app's index.html file (for SPA routing)
-// Using '{*splat}' syntax for Express 5 compatibility
-app.get('/{*splat}', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
-});
+// Check if frontend build exists
+const fs = require('fs');
+if (fs.existsSync(frontendDistPath)) {
+    // Serve static files from the React frontend build
+    app.use(express.static(frontendDistPath));
+
+    // Catch-all handler: For any request that doesn't match an API route,
+    // send back the React app's index.html file (for SPA routing)
+    // Using '{*splat}' syntax for Express 5 compatibility
+    app.get('/{*splat}', (req, res) => {
+        res.sendFile(indexHtmlPath);
+    });
+} else {
+    // Frontend not built yet - show helpful message
+    app.get('/', (req, res) => {
+        res.json({
+            message: 'API is running. Frontend build not found.',
+            hint: 'Run "npm run build:frontend" to build the frontend.',
+            frontendPath: frontendDistPath
+        });
+    });
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

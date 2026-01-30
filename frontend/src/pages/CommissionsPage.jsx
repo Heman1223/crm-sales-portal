@@ -200,21 +200,6 @@ const CommissionsPage = () => {
                 </div>
             </div>
 
-            <style>{`
-        .select-input {
-          padding: 10px 16px;
-          border: 1px solid var(--accent-beige);
-          border-radius: var(--radius-md);
-          background: var(--bg-white);
-          font-size: 0.9rem;
-          color: var(--text-primary);
-          cursor: pointer;
-        }
-        .select-input:focus {
-          outline: none;
-          border-color: var(--primary-brand);
-        }
-      `}</style>
         </div>
     );
 };

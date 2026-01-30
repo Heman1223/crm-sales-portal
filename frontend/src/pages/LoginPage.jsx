@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, User, Phone, MapPin, BarChart3, Users, Target } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, Phone, MapPin, BarChart3, Users, Target, AlertCircle } from 'lucide-react';
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -78,7 +78,7 @@ const LoginPage = () => {
               />
               <div className="login-logo-text">
                 <h1>SalesEdge</h1>
-                <span>Enterprise CRM</span>
+                <span>Avani Enterprises CRM</span>
               </div>
             </div>
 
@@ -129,7 +129,8 @@ const LoginPage = () => {
 
             {error && (
               <div className="login-error">
-                {error}
+                <AlertCircle size={18} />
+                <span>{error}</span>
               </div>
             )}
 
@@ -400,11 +401,15 @@ const LoginPage = () => {
         .login-error {
           background: rgba(220, 53, 69, 0.1);
           color: #dc3545;
-          padding: 12px 16px;
+          padding: 14px 16px;
           border-radius: var(--radius-md);
           margin-bottom: 24px;
           font-size: 0.9rem;
           border: 1px solid rgba(220, 53, 69, 0.2);
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 500;
         }
 
         .login-form {

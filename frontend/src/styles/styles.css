@@ -1254,6 +1254,8 @@ a:hover {
   /* Main content - Full width */
   .main-content {
     margin-left: 0;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   /* Hamburger Button - visible on mobile */
@@ -1326,6 +1328,8 @@ a:hover {
   /* Page Content */
   .page-content {
     padding: var(--space-md);
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   /* Page Header - Stack on mobile */
@@ -1380,6 +1384,8 @@ a:hover {
   /* Card adjustments */
   .card {
     border-radius: var(--radius-md);
+    max-width: 100%;
+    overflow: hidden;
   }
 
   .card-header {
@@ -1394,6 +1400,8 @@ a:hover {
 
   .card-body {
     padding: var(--space-md);
+    overflow-x: auto;
+    max-width: 100%;
   }
 
   /* Chart Container - Adjusted height for mobile */
@@ -1423,6 +1431,26 @@ a:hover {
     padding: var(--space-sm) var(--space-md);
     font-size: 0.85rem;
     white-space: nowrap;
+    min-width: 80px;
+  }
+
+  /* Scroll indicator for tables */
+  .table-container::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, var(--bg-main) 0%, transparent 100%);
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .table-container {
+    position: relative;
+    margin: 0 calc(-1 * var(--space-md));
+    padding: 0 var(--space-md);
   }
 
   .cell-user {

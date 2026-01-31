@@ -69,7 +69,7 @@ const ReportsPage = () => {
             } else if (reportType === 'cities') {
                 const response = await analyticsAPI.getCities();
                 data = response.data.map(city => ({
-                    City: city._id || 'Unknown',
+                    City: city.city || 'Unknown',
                     'Total Revenue': city.totalRevenue,
                     'Total Commission': city.totalCommission,
                     'Sales Count': city.salesCount

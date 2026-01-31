@@ -225,6 +225,7 @@ const SellerDashboard = () => {
                                 performers={topPerformers.slice(0, 5).map((p, index) => ({
                                     id: p._id,
                                     name: p._id === user._id ? `${p.name} (You)` : p.name,
+                                    avatar: p.avatar,
                                     city: p.city,
                                     value: p.totalRevenue,
                                     metric: 'Sales'
@@ -277,7 +278,7 @@ const SellerDashboard = () => {
                                             <div style={{ fontWeight: 600, color: 'var(--primary-brand)' }}>
                                                 ₹{sale.amount.toLocaleString()}
                                             </div>
-                                            <span className={`badge badge-${sale.status === 'Completed' ? 'success' : 'warning'}`}>
+                                            <span className={`badge badge-${sale.status === 'Approved' ? 'success' : 'warning'}`}>
                                                 {sale.status}
                                             </span>
                                         </div>

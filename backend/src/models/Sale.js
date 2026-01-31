@@ -31,7 +31,7 @@ const saleSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'Processing', 'Completed', 'Cancelled'],
+        enum: ['Pending', 'Approved', 'Rejected'],
         default: 'Pending'
     },
     city: {
@@ -50,17 +50,23 @@ const saleSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
+    },
+    // Approval metadata
+    approvedAt: {
+        type: Date
+    },
+    approvedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
+    rejectionReason: {
+        type: String,
+        trim: true
     }
 });
 
-// Calculate commission before save
-saleSchema.pre('save', function () {
-    if (this.isModified('amount') || this.isNew) {
-        const rate = this.commissionRate || 10;
-        const amt = this.amount || 0;
-        this.commission = amt * (rate / 100);
-    }
-});
+// Commission is calculated only when sale is approved (in the API route)
+// No automatic commission calculation on save
 
 // Index for efficient queries
 saleSchema.index({ seller: 1, date: -1 });

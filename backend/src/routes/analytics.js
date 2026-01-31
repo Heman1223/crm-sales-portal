@@ -6,11 +6,13 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   GET /api/analytics/dashboard
-// @desc    Get dashboard stats
+// @desc    Get dashboard stats (ONLY APPROVED SALES)
 // @access  Private
 router.get('/dashboard', protect, async (req, res) => {
     try {
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
@@ -22,7 +24,7 @@ router.get('/dashboard', protect, async (req, res) => {
         const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
-        // This month stats
+        // This month stats - only approved sales
         const thisMonthStats = await Sale.aggregate([
             {
                 $match: {
@@ -40,7 +42,7 @@ router.get('/dashboard', protect, async (req, res) => {
             }
         ]);
 
-        // Last month stats
+        // Last month stats - only approved sales
         const lastMonthStats = await Sale.aggregate([
             {
                 $match: {
@@ -62,6 +64,9 @@ router.get('/dashboard', protect, async (req, res) => {
         let activeSellers = 0;
         if (req.user.role === 'admin') {
             activeSellers = await User.countDocuments({ role: 'seller', isActive: true });
+        } else if (req.user.role === 'seller' && req.user.city) {
+            // For sellers, count team members in their city
+            activeSellers = await User.countDocuments({ role: 'seller', isActive: true, city: req.user.city });
         }
 
         // Calculate trends
@@ -94,11 +99,13 @@ router.get('/dashboard', protect, async (req, res) => {
 });
 
 // @route   GET /api/analytics/revenue
-// @desc    Get monthly revenue data
+// @desc    Get monthly revenue data (ONLY APPROVED SALES)
 // @access  Private
 router.get('/revenue', protect, async (req, res) => {
     try {
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
@@ -138,11 +145,14 @@ router.get('/revenue', protect, async (req, res) => {
 });
 
 // @route   GET /api/analytics/cities
-// @desc    Get city-wise performance (admin only)
+// @desc    Get city-wise performance (admin only, ONLY APPROVED SALES)
 // @access  Private/Admin
 router.get('/cities', protect, adminOnly, async (req, res) => {
     try {
         const cityStats = await Sale.aggregate([
+            {
+                $match: { status: 'Approved' } // Only count approved sales
+            },
             {
                 $group: {
                     _id: '$city',
@@ -170,16 +180,22 @@ router.get('/cities', protect, adminOnly, async (req, res) => {
 });
 
 // @route   GET /api/analytics/top-performers
-// @desc    Get top performing sellers
+// @desc    Get top performing sellers (ONLY APPROVED SALES, city-filtered for sellers)
 // @access  Private
 router.get('/top-performers', protect, async (req, res) => {
     try {
         const { limit = 10, city, service, period } = req.query;
 
         // Build match query based on filters
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
-        if (city) {
+        // SELLER VISIBILITY: Sellers can only see performers from their own city
+        if (req.user.role === 'seller' && req.user.city) {
+            matchQuery.city = req.user.city;
+        } else if (city) {
+            // Admin can filter by specific city
             matchQuery.city = { $regex: city, $options: 'i' };
         }
 
@@ -248,11 +264,13 @@ router.get('/top-performers', protect, async (req, res) => {
 });
 
 // @route   GET /api/analytics/sales-distribution
-// @desc    Get sales distribution by service type
+// @desc    Get sales distribution by service type (ONLY APPROVED SALES)
 // @access  Private
 router.get('/sales-distribution', protect, async (req, res) => {
     try {
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
@@ -283,11 +301,13 @@ router.get('/sales-distribution', protect, async (req, res) => {
 });
 
 // @route   GET /api/analytics/weekly
-// @desc    Get weekly comparison data
+// @desc    Get weekly comparison data (ONLY APPROVED SALES)
 // @access  Private
 router.get('/weekly', protect, async (req, res) => {
     try {
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
@@ -323,6 +343,54 @@ router.get('/weekly', protect, async (req, res) => {
         }));
 
         res.json(formatted);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// @route   GET /api/analytics/city-team
+// @desc    Get city team performance (for sellers to see their city's data)
+// @access  Private
+router.get('/city-team', protect, async (req, res) => {
+    try {
+        // Only sellers use this endpoint - they see their city's data
+        if (req.user.role !== 'seller' || !req.user.city) {
+            return res.status(400).json({ message: 'This endpoint is for sellers only' });
+        }
+
+        const city = req.user.city;
+
+        // Get city-level stats
+        const cityStats = await Sale.aggregate([
+            {
+                $match: {
+                    city: city,
+                    status: 'Approved'
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: '$amount' },
+                    totalCommission: { $sum: '$commission' },
+                    salesCount: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Get team members in this city
+        const teamMembers = await User.find({
+            role: 'seller',
+            city: city,
+            isActive: true
+        }).select('name email city');
+
+        res.json({
+            city,
+            stats: cityStats[0] || { totalRevenue: 0, totalCommission: 0, salesCount: 0 },
+            teamCount: teamMembers.length,
+            teamMembers: teamMembers.map(m => ({ id: m._id, name: m.name, email: m.email }))
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

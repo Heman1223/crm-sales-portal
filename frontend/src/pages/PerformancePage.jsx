@@ -62,6 +62,20 @@ const PerformancePage = () => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
 
+    const renderAvatar = (performer) => {
+        if (performer?.avatar) {
+            return (
+                <img src={performer.avatar} alt="Avatar" style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                }} />
+            );
+        }
+        return getInitials(performer?.name);
+    };
+
     const topThree = performers.slice(0, 3);
     const restPerformers = performers.slice(3);
 
@@ -136,7 +150,7 @@ const PerformancePage = () => {
                     {topThree[1] && (
                         <div className="podium-item silver">
                             <div className="podium-avatar">
-                                {getInitials(topThree[1].name)}
+                                {renderAvatar(topThree[1])}
                             </div>
                             <div className="podium-medal">
                                 <Medal size={28} />
@@ -153,7 +167,7 @@ const PerformancePage = () => {
                     {topThree[0] && (
                         <div className="podium-item gold">
                             <div className="podium-avatar">
-                                {getInitials(topThree[0].name)}
+                                {renderAvatar(topThree[0])}
                             </div>
                             <div className="podium-medal">
                                 <Trophy size={32} />
@@ -170,7 +184,7 @@ const PerformancePage = () => {
                     {topThree[2] && (
                         <div className="podium-item bronze">
                             <div className="podium-avatar">
-                                {getInitials(topThree[2].name)}
+                                {renderAvatar(topThree[2])}
                             </div>
                             <div className="podium-medal">
                                 <Award size={24} />
@@ -224,7 +238,7 @@ const PerformancePage = () => {
                                             <td>
                                                 <div className="cell-user">
                                                     <div className="cell-user-avatar">
-                                                        {getInitials(performer.name)}
+                                                        {renderAvatar(performer)}
                                                     </div>
                                                     <div className="cell-user-info">
                                                         <span>{performer.name}</span>

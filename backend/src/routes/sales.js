@@ -38,6 +38,7 @@ router.get('/', protect, async (req, res) => {
 
         const sales = await Sale.find(query)
             .populate('seller', 'name email city commissionRate')
+            .populate('approvedBy', 'name')
             .sort({ date: -1 })
             .limit(parseInt(limit));
 
@@ -50,18 +51,20 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   GET /api/sales/stats
-// @desc    Get sales statistics
+// @desc    Get sales statistics (ONLY APPROVED SALES)
 // @access  Private
 router.get('/stats', protect, async (req, res) => {
     try {
-        let matchQuery = {};
+        let matchQuery = {
+            status: 'Approved' // Only count approved sales
+        };
 
         // Sellers only see their own stats
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
         }
 
-        // Overall stats
+        // Overall stats - only approved sales
         const overallStats = await Sale.aggregate([
             { $match: matchQuery },
             {
@@ -70,14 +73,12 @@ router.get('/stats', protect, async (req, res) => {
                     totalRevenue: { $sum: '$amount' },
                     totalCommission: { $sum: '$commission' },
                     totalSales: { $sum: 1 },
-                    completedSales: {
-                        $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] }
-                    }
+                    approvedSales: { $sum: 1 }
                 }
             }
         ]);
 
-        // Monthly revenue (last 12 months)
+        // Monthly revenue (last 12 months) - only approved sales
         const monthlyRevenue = await Sale.aggregate([
             { $match: matchQuery },
             {
@@ -96,7 +97,7 @@ router.get('/stats', protect, async (req, res) => {
         ]);
 
         res.json({
-            overall: overallStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0, completedSales: 0 },
+            overall: overallStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0, approvedSales: 0 },
             monthly: monthlyRevenue
         });
     } catch (error) {
@@ -109,7 +110,9 @@ router.get('/stats', protect, async (req, res) => {
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
     try {
-        const sale = await Sale.findById(req.params.id).populate('seller', 'name email city');
+        const sale = await Sale.findById(req.params.id)
+            .populate('seller', 'name email city')
+            .populate('approvedBy', 'name');
 
         if (!sale) {
             return res.status(404).json({ message: 'Sale not found' });
@@ -127,7 +130,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // @route   POST /api/sales
-// @desc    Create new sale
+// @desc    Create new sale (Pending status, NO target updates until approval)
 // @access  Private
 router.post('/', protect, async (req, res) => {
     try {
@@ -162,32 +165,16 @@ router.post('/', protect, async (req, res) => {
             amount,
             city: city || req.user.city || 'Unknown',
             notes,
-            commissionRate: commissionRate || sellerCommissionRate
+            commissionRate: commissionRate || sellerCommissionRate,
+            status: 'Pending', // Always start as Pending
+            commission: 0 // Commission is 0 until approved
         };
         console.log('Sales POST - Creating sale with data:', JSON.stringify(saleData));
 
         const sale = await Sale.create(saleData);
         console.log('Sales POST - Sale created:', sale._id);
 
-        // Update target achieved amount
-        const now = new Date();
-        const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(service);
-
-        await Target.findOneAndUpdate(
-            {
-                seller: sellerId,
-                month: now.getMonth() + 1,
-                year: now.getFullYear()
-            },
-            {
-                $inc: {
-                    achievedAmount: amount,
-                    achievedClients: 1,
-                    achievedPremiumSales: isPremium ? 1 : 0
-                }
-            }
-        );
-        console.log('Sales POST - Target updated');
+        // NOTE: NO target updates here - targets are only updated upon approval
 
         const populatedSale = await Sale.findById(sale._id).populate('seller', 'name email city');
 
@@ -206,8 +193,114 @@ router.post('/', protect, async (req, res) => {
     }
 });
 
+// @route   POST /api/sales/:id/approve
+// @desc    Approve a sale (admin only) - calculates commission and updates targets
+// @access  Private/Admin
+router.post('/:id/approve', protect, adminOnly, async (req, res) => {
+    try {
+        const sale = await Sale.findById(req.params.id);
+
+        if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+
+        if (sale.status !== 'Pending') {
+            return res.status(400).json({ message: 'Only pending sales can be approved' });
+        }
+
+        // Calculate commission
+        const commissionRate = sale.commissionRate || 10;
+        const commission = sale.amount * (commissionRate / 100);
+
+        // Update sale to approved
+        sale.status = 'Approved';
+        sale.commission = commission;
+        sale.approvedAt = new Date();
+        sale.approvedBy = req.user._id;
+
+        await sale.save();
+
+        // Update target achieved amounts
+        const saleDate = new Date(sale.date);
+        const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(sale.service);
+
+        await Target.findOneAndUpdate(
+            {
+                seller: sale.seller,
+                month: saleDate.getMonth() + 1,
+                year: saleDate.getFullYear()
+            },
+            {
+                $inc: {
+                    achievedAmount: sale.amount,
+                    achievedClients: 1,
+                    achievedPremiumSales: isPremium ? 1 : 0
+                }
+            }
+        );
+
+        const populatedSale = await Sale.findById(sale._id)
+            .populate('seller', 'name email city')
+            .populate('approvedBy', 'name');
+
+        console.log('Sale approved:', sale._id, 'by', req.user.name);
+
+        res.json({
+            message: 'Sale approved successfully',
+            sale: populatedSale
+        });
+    } catch (error) {
+        console.error('Approve Sale Error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// @route   POST /api/sales/:id/reject
+// @desc    Reject a sale (admin only)
+// @access  Private/Admin
+router.post('/:id/reject', protect, adminOnly, async (req, res) => {
+    try {
+        const sale = await Sale.findById(req.params.id);
+
+        if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+
+        if (sale.status !== 'Pending') {
+            return res.status(400).json({ message: 'Only pending sales can be rejected' });
+        }
+
+        const { rejectionReason } = req.body;
+
+        // Update sale to rejected
+        sale.status = 'Rejected';
+        sale.commission = 0;
+        sale.rejectionReason = rejectionReason || 'No reason provided';
+        sale.approvedBy = req.user._id; // Track who rejected it
+        sale.approvedAt = new Date(); // Track when it was rejected
+
+        await sale.save();
+
+        // NOTE: No target updates for rejected sales
+
+        const populatedSale = await Sale.findById(sale._id)
+            .populate('seller', 'name email city')
+            .populate('approvedBy', 'name');
+
+        console.log('Sale rejected:', sale._id, 'by', req.user.name);
+
+        res.json({
+            message: 'Sale rejected',
+            sale: populatedSale
+        });
+    } catch (error) {
+        console.error('Reject Sale Error:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
 // @route   PUT /api/sales/:id
-// @desc    Update sale
+// @desc    Update sale (Sellers: pending only, Admin: any)
 // @access  Private
 router.put('/:id', protect, async (req, res) => {
     try {
@@ -227,24 +320,65 @@ router.put('/:id', protect, async (req, res) => {
             }
         }
 
-        const { client, service, amount, status, city, notes } = req.body;
+        const { client, service, amount, city, notes } = req.body;
 
         // Update fields
         if (client !== undefined) sale.client = client;
         if (service !== undefined) sale.service = service;
         if (amount !== undefined) {
             sale.amount = amount;
-            // Recalculate commission
-            sale.commission = amount * (sale.commissionRate / 100);
+            // If already approved, recalculate commission
+            if (sale.status === 'Approved') {
+                sale.commission = amount * (sale.commissionRate / 100);
+            }
         }
-        if (status !== undefined && req.user.role === 'admin') sale.status = status;
         if (city !== undefined) sale.city = city;
         if (notes !== undefined) sale.notes = notes;
+
+        // Admin can change status via PUT (but approve/reject endpoints are preferred)
+        if (req.user.role === 'admin' && req.body.status !== undefined) {
+            const oldStatus = sale.status;
+            const newStatus = req.body.status;
+
+            // If changing to Approved from Pending, handle the approval logic
+            if (oldStatus === 'Pending' && newStatus === 'Approved') {
+                sale.status = 'Approved';
+                sale.commission = sale.amount * (sale.commissionRate / 100);
+                sale.approvedAt = new Date();
+                sale.approvedBy = req.user._id;
+
+                // Update targets
+                const saleDate = new Date(sale.date);
+                const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(sale.service);
+                await Target.findOneAndUpdate(
+                    {
+                        seller: sale.seller,
+                        month: saleDate.getMonth() + 1,
+                        year: saleDate.getFullYear()
+                    },
+                    {
+                        $inc: {
+                            achievedAmount: sale.amount,
+                            achievedClients: 1,
+                            achievedPremiumSales: isPremium ? 1 : 0
+                        }
+                    }
+                );
+            } else if (oldStatus === 'Pending' && newStatus === 'Rejected') {
+                sale.status = 'Rejected';
+                sale.commission = 0;
+                sale.approvedBy = req.user._id;
+                sale.approvedAt = new Date();
+            } else {
+                sale.status = newStatus;
+            }
+        }
 
         await sale.save();
 
         const updatedSale = await Sale.findById(req.params.id)
-            .populate('seller', 'name email city');
+            .populate('seller', 'name email city')
+            .populate('approvedBy', 'name');
 
         res.json(updatedSale);
     } catch (error) {
@@ -257,11 +391,34 @@ router.put('/:id', protect, async (req, res) => {
 // @access  Private/Admin
 router.delete('/:id', protect, adminOnly, async (req, res) => {
     try {
-        const sale = await Sale.findByIdAndDelete(req.params.id);
+        const sale = await Sale.findById(req.params.id);
 
         if (!sale) {
             return res.status(404).json({ message: 'Sale not found' });
         }
+
+        // If sale was approved, reverse the target updates
+        if (sale.status === 'Approved') {
+            const saleDate = new Date(sale.date);
+            const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(sale.service);
+
+            await Target.findOneAndUpdate(
+                {
+                    seller: sale.seller,
+                    month: saleDate.getMonth() + 1,
+                    year: saleDate.getFullYear()
+                },
+                {
+                    $inc: {
+                        achievedAmount: -sale.amount,
+                        achievedClients: -1,
+                        achievedPremiumSales: isPremium ? -1 : 0
+                    }
+                }
+            );
+        }
+
+        await Sale.findByIdAndDelete(req.params.id);
 
         res.json({ message: 'Sale deleted successfully' });
     } catch (error) {

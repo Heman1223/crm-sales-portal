@@ -147,7 +147,16 @@ const TargetsPage = () => {
                             <div key={target._id} className="target-card">
                                 <div className="target-header">
                                     <div className="target-avatar">
-                                        {target.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+                                        {target.seller?.avatar ? (
+                                            <img src={target.seller.avatar} alt="Avatar" style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover'
+                                            }} />
+                                        ) : (
+                                            target.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'
+                                        )}
                                     </div>
                                     <div>
                                         <h4>{target.seller?.name || 'Unknown'}</h4>

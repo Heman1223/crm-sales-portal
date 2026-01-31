@@ -5,7 +5,9 @@ import {
     Edit2,
     Trash2,
     DollarSign,
-    X
+    X,
+    Check,
+    XCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { salesAPI, usersAPI, servicesAPI } from '../utils/api';
@@ -40,7 +42,7 @@ const SalesPage = () => {
         status: 'Pending'
     });
 
-    const statuses = ['Pending', 'Processing', 'Completed', 'Cancelled'];
+    const statuses = ['Pending', 'Approved', 'Rejected'];
 
     useEffect(() => {
         fetchSales();
@@ -188,6 +190,31 @@ const SalesPage = () => {
         }
     };
 
+    const handleApprove = async (id) => {
+        if (window.confirm('Approve this sale? This will calculate commission and update targets.')) {
+            try {
+                await salesAPI.approve(id);
+                toast.success('Sale approved successfully!');
+                fetchSales();
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Error approving sale');
+            }
+        }
+    };
+
+    const handleReject = async (id) => {
+        const reason = window.prompt('Enter rejection reason (optional):');
+        if (reason !== null) {
+            try {
+                await salesAPI.reject(id, reason);
+                toast.success('Sale rejected');
+                fetchSales();
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Error rejecting sale');
+            }
+        }
+    };
+
     const openNewSaleModal = () => {
         setEditingSale(null);
         resetForm();
@@ -200,7 +227,16 @@ const SalesPage = () => {
             render: (row) => (
                 <div className="cell-user">
                     <div className="cell-user-avatar">
-                        {row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+                        {row.seller?.avatar ? (
+                            <img src={row.seller.avatar} alt="Avatar" style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }} />
+                        ) : (
+                            row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'
+                        )}
                     </div>
                     <div className="cell-user-info">
                         <span>{row.seller?.name || 'Unknown'}</span>
@@ -226,9 +262,9 @@ const SalesPage = () => {
         {
             header: 'Status',
             render: (row) => (
-                <span className={`badge ${row.status === 'Completed' ? 'badge-success' :
+                <span className={`badge ${row.status === 'Approved' ? 'badge-success' :
                     row.status === 'Pending' ? 'badge-warning' :
-                        row.status === 'Processing' ? 'badge-secondary' : 'badge-muted'
+                        row.status === 'Rejected' ? 'badge-muted' : 'badge-secondary'
                     }`}>
                     {row.status}
                 </span>
@@ -246,13 +282,37 @@ const SalesPage = () => {
             header: 'Actions',
             render: (row) => (
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                        className="btn btn-ghost btn-sm btn-icon"
-                        onClick={() => handleEdit(row)}
-                        title="Edit"
-                    >
-                        <Edit2 size={16} />
-                    </button>
+                    {/* Approve/Reject buttons for admin on pending sales */}
+                    {isAdmin && row.status === 'Pending' && (
+                        <>
+                            <button
+                                className="btn btn-ghost btn-sm btn-icon"
+                                onClick={() => handleApprove(row._id)}
+                                title="Approve"
+                                style={{ color: 'var(--success)' }}
+                            >
+                                <Check size={16} />
+                            </button>
+                            <button
+                                className="btn btn-ghost btn-sm btn-icon"
+                                onClick={() => handleReject(row._id)}
+                                title="Reject"
+                                style={{ color: 'var(--danger)' }}
+                            >
+                                <XCircle size={16} />
+                            </button>
+                        </>
+                    )}
+                    {/* Edit button - sellers can only edit pending sales */}
+                    {(isAdmin || row.status === 'Pending') && (
+                        <button
+                            className="btn btn-ghost btn-sm btn-icon"
+                            onClick={() => handleEdit(row)}
+                            title="Edit"
+                        >
+                            <Edit2 size={16} />
+                        </button>
+                    )}
                     {isAdmin && (
                         <button
                             className="btn btn-ghost btn-sm btn-icon"
@@ -269,6 +329,15 @@ const SalesPage = () => {
 
     const totalAmount = filteredSales.reduce((sum, s) => sum + (s.amount || 0), 0);
     const totalCommission = filteredSales.reduce((sum, s) => sum + (s.commission || 0), 0);
+
+    // Approved sales stats
+    const approvedSales = filteredSales.filter(s => s.status === 'Approved');
+    const approvedAmount = approvedSales.reduce((sum, s) => sum + (s.amount || 0), 0);
+    const approvedCommission = approvedSales.reduce((sum, s) => sum + (s.commission || 0), 0);
+
+    // Pending sales stats
+    const pendingSales = filteredSales.filter(s => s.status === 'Pending');
+    const pendingAmount = pendingSales.reduce((sum, s) => sum + (s.amount || 0), 0);
 
     return (
         <div>
@@ -291,15 +360,22 @@ const SalesPage = () => {
                     <div className="stat-card-header">
                         <div className="stat-card-icon"><DollarSign /></div>
                     </div>
-                    <div className="stat-card-value">₹{totalAmount.toLocaleString()}</div>
-                    <div className="stat-card-label">Total Sales</div>
+                    <div className="stat-card-value">₹{approvedAmount.toLocaleString()}</div>
+                    <div className="stat-card-label">Approved Sales</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">
                         <div className="stat-card-icon"><DollarSign /></div>
                     </div>
-                    <div className="stat-card-value">₹{totalCommission.toLocaleString()}</div>
-                    <div className="stat-card-label">Total Commission</div>
+                    <div className="stat-card-value">₹{approvedCommission.toLocaleString()}</div>
+                    <div className="stat-card-label">Approved Commission</div>
+                </div>
+                <div className="stat-card">
+                    <div className="stat-card-header">
+                        <div className="stat-card-icon"><DollarSign /></div>
+                    </div>
+                    <div className="stat-card-value">₹{pendingAmount.toLocaleString()}</div>
+                    <div className="stat-card-label">Pending Sales ({pendingSales.length})</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">

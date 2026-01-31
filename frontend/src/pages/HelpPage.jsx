@@ -20,7 +20,7 @@ const HelpPage = () => {
         },
         {
             question: 'How are commissions calculated?',
-            answer: 'Commissions are automatically calculated at 10% of each sale amount. You can view your total commissions on the Dashboard or the Commissions page. Commissions are marked as "Paid" when the sale status is "Completed".'
+            answer: 'Commissions are automatically calculated at 10% of each sale amount when the admin approves the sale. You can view your total commissions on the Dashboard or the Commissions page. Commissions are only counted for "Approved" sales.'
         },
         {
             question: 'How do I track my monthly targets?',
@@ -28,7 +28,7 @@ const HelpPage = () => {
         },
         {
             question: 'Can I edit a sale after submitting?',
-            answer: 'Sellers can only edit sales with "Pending" status. Once a sale is moved to "Processing" or "Completed" by an admin, it becomes read-only. Admins can edit sales at any status.'
+            answer: 'Sellers can only edit sales with "Pending" status. Once a sale is approved or rejected by an admin, it becomes read-only. Admins can edit sales at any status.'
         },
         {
             question: 'How do I view my performance ranking?',
@@ -44,7 +44,7 @@ const HelpPage = () => {
         },
         {
             question: 'What do the sale statuses mean?',
-            answer: 'Pending: Sale is logged but not yet verified. Processing: Sale is being processed/verified. Completed: Sale is confirmed and commission is paid. Cancelled: Sale was cancelled or invalid.'
+            answer: 'Pending: Sale is logged and awaiting admin review. Approved: Sale is confirmed by admin, commission is calculated, and revenue counts toward targets. Rejected: Sale was rejected by admin (see rejection reason).'
         }
     ];
 

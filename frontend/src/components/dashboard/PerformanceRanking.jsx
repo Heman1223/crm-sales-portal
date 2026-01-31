@@ -12,6 +12,20 @@ const PerformanceRanking = ({ performers }) => {
         return name.split(' ').map(n => n[0]).join('').toUpperCase();
     };
 
+    const renderAvatar = (performer) => {
+        if (performer?.avatar) {
+            return (
+                <img src={performer.avatar} alt="Avatar" style={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                }} />
+            );
+        }
+        return getInitials(performer.name);
+    };
+
     return (
         <ul className="ranking-list">
             {performers.map((performer, index) => (
@@ -20,7 +34,7 @@ const PerformanceRanking = ({ performers }) => {
                         {index + 1}
                     </div>
                     <div className="ranking-avatar">
-                        {getInitials(performer.name)}
+                        {renderAvatar(performer)}
                     </div>
                     <div className="ranking-info">
                         <h4>{performer.name}</h4>

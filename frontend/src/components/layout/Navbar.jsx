@@ -132,7 +132,16 @@ const Navbar = ({ title = 'Dashboard', onMenuToggle = () => { } }) => {
 
                 <div className="navbar-profile" onClick={() => navigate('/settings')}>
                     <div className="navbar-profile-avatar">
-                        {getInitials(userName)}
+                        {user?.avatar ? (
+                            <img src={user.avatar} alt="Avatar" style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }} />
+                        ) : (
+                            getInitials(userName)
+                        )}
                     </div>
                     <div className="navbar-profile-info">
                         <span>{userName}</span>

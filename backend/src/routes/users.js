@@ -33,7 +33,7 @@ router.get('/', protect, adminOnly, async (req, res) => {
         // Get sales stats for each user
         const usersWithStats = await Promise.all(users.map(async (user) => {
             const stats = await Sale.aggregate([
-                { $match: { seller: user._id } },
+                { $match: { seller: user._id, status: 'Approved' } },
                 {
                     $group: {
                         _id: null,
@@ -84,9 +84,9 @@ router.get('/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Get user stats
+        // Get user stats - only approved sales
         const stats = await Sale.aggregate([
-            { $match: { seller: user._id } },
+            { $match: { seller: user._id, status: 'Approved' } },
             {
                 $group: {
                     _id: null,

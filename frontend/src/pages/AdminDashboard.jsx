@@ -112,7 +112,16 @@ const AdminDashboard = () => {
             render: (row) => (
                 <div className="cell-user">
                     <div className="cell-user-avatar">
-                        {row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+                        {row.seller?.avatar ? (
+                            <img src={row.seller.avatar} alt="Avatar" style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }} />
+                        ) : (
+                            row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'
+                        )}
                     </div>
                     <div className="cell-user-info">
                         <span>{row.seller?.name || 'Unknown'}</span>
@@ -127,7 +136,7 @@ const AdminDashboard = () => {
         {
             header: 'Status',
             render: (row) => (
-                <span className={`badge badge-${row.status === 'Completed' ? 'success' : row.status === 'Pending' ? 'warning' : 'muted'}`}>
+                <span className={`badge badge-${row.status === 'Approved' ? 'success' : row.status === 'Pending' ? 'warning' : 'muted'}`}>
                     {row.status}
                 </span>
             )
@@ -203,6 +212,7 @@ const AdminDashboard = () => {
                                 performers={topPerformers.map(p => ({
                                     id: p._id,
                                     name: p.name,
+                                    avatar: p.avatar,
                                     city: p.city,
                                     value: p.totalRevenue,
                                     metric: 'Revenue'

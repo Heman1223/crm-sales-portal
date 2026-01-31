@@ -141,7 +141,16 @@ const TeamPage = () => {
             render: (row) => (
                 <div className="cell-user">
                     <div className="cell-user-avatar">
-                        {row.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        {row.avatar ? (
+                            <img src={row.avatar} alt="Avatar" style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }} />
+                        ) : (
+                            row.name.split(' ').map(n => n[0]).join('').toUpperCase()
+                        )}
                     </div>
                     <div className="cell-user-info">
                         <span>{row.name}</span>

@@ -65,7 +65,9 @@ export const salesAPI = {
     create: (data) => api.post('/sales', data),
     update: (id, data) => api.put(`/sales/${id}`, data),
     delete: (id) => api.delete(`/sales/${id}`),
-    getStats: () => api.get('/sales/stats')
+    getStats: () => api.get('/sales/stats'),
+    approve: (id) => api.post(`/sales/${id}/approve`),
+    reject: (id, rejectionReason) => api.post(`/sales/${id}/reject`, { rejectionReason })
 };
 
 // Services API

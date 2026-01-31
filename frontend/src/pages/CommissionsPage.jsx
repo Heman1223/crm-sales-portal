@@ -32,7 +32,7 @@ const CommissionsPage = () => {
             // Calculate stats
             const totalCommission = sales.reduce((sum, sale) => sum + sale.commission, 0);
             const completedCommission = sales
-                .filter(s => s.status === 'Completed')
+                .filter(s => s.status === 'Approved')
                 .reduce((sum, sale) => sum + sale.commission, 0);
             const pendingCommission = totalCommission - completedCommission;
 
@@ -56,7 +56,16 @@ const CommissionsPage = () => {
             render: (row) => (
                 <div className="cell-user">
                     <div className="cell-user-avatar">
-                        {row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'}
+                        {row.seller?.avatar ? (
+                            <img src={row.seller.avatar} alt="Avatar" style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '50%',
+                                objectFit: 'cover'
+                            }} />
+                        ) : (
+                            row.seller?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'N/A'
+                        )}
                     </div>
                     <div className="cell-user-info">
                         <span>{row.seller?.name || 'Unknown'}</span>
@@ -82,7 +91,7 @@ const CommissionsPage = () => {
         {
             header: 'Status',
             render: (row) => (
-                <span className={`badge ${row.status === 'Completed' ? 'badge-success' :
+                <span className={`badge ${row.status === 'Approved' ? 'badge-success' :
                     row.status === 'Pending' ? 'badge-warning' : 'badge-muted'
                     }`}>
                     {row.status}
@@ -156,7 +165,7 @@ const CommissionsPage = () => {
                         <div className="stat-card-icon"><TrendingUp /></div>
                     </div>
                     <div className="stat-card-value">₹{stats.paid.toLocaleString()}</div>
-                    <div className="stat-card-label">Paid (Completed)</div>
+                    <div className="stat-card-label">Paid (Approved)</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">

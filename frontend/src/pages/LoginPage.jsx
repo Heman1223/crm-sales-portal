@@ -26,7 +26,10 @@ const LoginPage = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('');
+    // Clear error when user starts typing again
+    if (error) {
+      setError('');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -44,6 +47,8 @@ const LoginPage = () => {
       }
 
       if (result.success) {
+        // Clear any existing errors
+        setError('');
         // Redirect based on role
         if (result.user.role === 'seller') {
           navigate('/seller');
@@ -51,14 +56,21 @@ const LoginPage = () => {
           navigate(from === '/login' ? '/' : from);
         }
       } else {
+        // Set error and keep it visible
         setError(result.error);
+        // Keep loading false so user can try again
+        setLoading(false);
+        return; // Don't set loading to false in finally block
       }
     } catch (err) {
       console.error('Login/Register error:', err);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setLoading(false);
+      return; // Don't set loading to false in finally block
     }
+    
+    // Only set loading to false on success (after navigation)
+    setLoading(false);
   };
 
   return (
@@ -421,17 +433,25 @@ const LoginPage = () => {
         }
 
         .login-error {
-          background: rgba(220, 53, 69, 0.1);
+          background: rgba(220, 53, 69, 0.15);
           color: #dc3545;
-          padding: 14px 16px;
+          padding: 16px 18px;
           border-radius: var(--radius-md);
           margin-bottom: 24px;
-          font-size: 0.9rem;
-          border: 1px solid rgba(220, 53, 69, 0.2);
+          font-size: 0.95rem;
+          border: 2px solid rgba(220, 53, 69, 0.3);
           display: flex;
           align-items: center;
-          gap: 10px;
-          font-weight: 500;
+          gap: 12px;
+          font-weight: 600;
+          animation: errorShake 0.5s ease-in-out;
+          box-shadow: 0 2px 8px rgba(220, 53, 69, 0.1);
+        }
+
+        @keyframes errorShake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
         }
 
         .login-form {

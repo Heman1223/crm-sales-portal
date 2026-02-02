@@ -164,12 +164,24 @@ const Navbar = ({ title = 'Dashboard', onMenuToggle = () => { } }) => {
                     top: 100%;
                     right: 0;
                     width: 360px;
+                    max-width: calc(100vw - 24px);
                     background: var(--bg-white);
                     border-radius: var(--radius-lg);
                     box-shadow: var(--shadow-xl);
                     border: 1px solid var(--accent-light);
                     z-index: 1000;
                     margin-top: 8px;
+                }
+                
+                @media (max-width: 768px) {
+                    .notification-dropdown {
+                        position: fixed;
+                        top: 70px;
+                        left: 12px;
+                        right: 12px;
+                        width: auto;
+                        max-width: none;
+                    }
                 }
                 .notification-header {
                     display: flex;

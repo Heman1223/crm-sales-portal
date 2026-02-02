@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff, Lock, Mail, User, Phone, MapPin, BarChart3, Users, Target, AlertCircle } from 'lucide-react';
@@ -8,6 +8,8 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showError, setShowError] = useState(false);
+  const errorTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -27,15 +29,41 @@ const LoginPage = () => {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     // Clear error when user starts typing again
-    if (error) {
+    if (showError) {
+      setShowError(false);
       setError('');
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
     }
+  };
+
+  const displayError = (errorMessage) => {
+    setError(errorMessage);
+    setShowError(true);
+    
+    // Clear any existing timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
+    
+    // Keep error visible for 8 seconds
+    errorTimeoutRef.current = setTimeout(() => {
+      setShowError(false);
+      setError('');
+    }, 8000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setShowError(false);
+
+    // Clear any existing error timeout
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+    }
 
     try {
       let result;
@@ -49,6 +77,7 @@ const LoginPage = () => {
       if (result.success) {
         // Clear any existing errors
         setError('');
+        setShowError(false);
         // Redirect based on role
         if (result.user.role === 'seller') {
           navigate('/seller');
@@ -56,21 +85,15 @@ const LoginPage = () => {
           navigate(from === '/login' ? '/' : from);
         }
       } else {
-        // Set error and keep it visible
-        setError(result.error);
-        // Keep loading false so user can try again
-        setLoading(false);
-        return; // Don't set loading to false in finally block
+        // Display error with persistent timeout
+        displayError(result.error || 'Invalid email or password. Please check your credentials and try again.');
       }
     } catch (err) {
       console.error('Login/Register error:', err);
-      setError('An unexpected error occurred. Please try again.');
+      displayError('Connection error. Please check your internet connection and try again.');
+    } finally {
       setLoading(false);
-      return; // Don't set loading to false in finally block
     }
-    
-    // Only set loading to false on success (after navigation)
-    setLoading(false);
   };
 
   return (
@@ -141,7 +164,7 @@ const LoginPage = () => {
               <p>{isLogin ? 'Sign in to continue to your dashboard' : 'Register to get started'}</p>
             </div>
 
-            {error && (
+            {showError && error && (
               <div className="login-error">
                 <AlertCircle size={18} />
                 <span>{error}</span>

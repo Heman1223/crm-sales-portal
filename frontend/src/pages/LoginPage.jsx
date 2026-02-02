@@ -57,8 +57,16 @@ const LoginPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    // Prevent double submission
+    if (loading) {
+      console.log('Already loading, preventing double submission');
+      return false;
+    }
     
     console.log('Form submitted, loading:', loading);
     
@@ -84,7 +92,7 @@ const LoginPage = () => {
         console.log('Register result:', result);
       }
 
-      if (result.success) {
+      if (result && result.success) {
         console.log('Success! Redirecting...');
         // Clear any existing errors
         setError('');
@@ -97,15 +105,19 @@ const LoginPage = () => {
         }
       } else {
         console.log('Login failed, showing error');
+        setLoading(false);
         // Display error with persistent timeout
-        displayError(result.error || 'Invalid email or password. Please check your credentials and try again.');
+        displayError(result?.error || 'Invalid email or password. Please check your credentials and try again.');
+        return false; // Prevent any further action
       }
     } catch (err) {
       console.error('Login/Register error:', err);
-      displayError('Connection error. Please check your internet connection and try again.');
-    } finally {
       setLoading(false);
+      displayError('Connection error. Please check your internet connection and try again.');
+      return false; // Prevent any further action
     }
+    
+    return false; // Prevent default form behavior
   };
 
   return (

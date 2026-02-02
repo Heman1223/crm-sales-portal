@@ -58,6 +58,10 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('Form submitted, loading:', loading);
+    
     setLoading(true);
     setError('');
     setShowError(false);
@@ -71,12 +75,17 @@ const LoginPage = () => {
       let result;
 
       if (isLogin) {
+        console.log('Attempting login...');
         result = await login(formData.email, formData.password);
+        console.log('Login result:', result);
       } else {
+        console.log('Attempting register...');
         result = await register(formData);
+        console.log('Register result:', result);
       }
 
       if (result.success) {
+        console.log('Success! Redirecting...');
         // Clear any existing errors
         setError('');
         setShowError(false);
@@ -87,6 +96,7 @@ const LoginPage = () => {
           navigate(from === '/login' ? '/' : from);
         }
       } else {
+        console.log('Login failed, showing error');
         // Display error with persistent timeout
         displayError(result.error || 'Invalid email or password. Please check your credentials and try again.');
       }
@@ -173,7 +183,7 @@ const LoginPage = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="login-form">
+            <form onSubmit={handleSubmit} className="login-form" noValidate>
               {!isLogin && (
                 <div className="form-group">
                   <label htmlFor="name">Full Name</label>

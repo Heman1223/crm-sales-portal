@@ -271,7 +271,7 @@ const SellerDashboard = () => {
                                             <DollarSign size={18} />
                                         </div>
                                         <div className="activity-content">
-                                            <p><strong>{sale.client}</strong> - {sale.service}</p>
+                                            <p><strong>{sale.client}</strong> - {sale.service?.name || sale.serviceName || 'Unknown Service'}</p>
                                             <time>{new Date(sale.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</time>
                                         </div>
                                         <div style={{ textAlign: 'right' }}>

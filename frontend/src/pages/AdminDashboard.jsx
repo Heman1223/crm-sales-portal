@@ -164,7 +164,7 @@ const AdminDashboard = () => {
                 </div>
             )
         },
-        { header: 'Service', accessor: 'service' },
+        { header: 'Service', render: (row) => row.service?.name || row.serviceName || 'Unknown Service' },
         { header: 'Amount', render: (row) => `₹${(row.amount || 0).toLocaleString()}` },
         { header: 'Commission', render: (row) => `₹${(row.commission || 0).toLocaleString()}` },
         {

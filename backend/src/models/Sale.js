@@ -12,8 +12,13 @@ const saleSchema = new mongoose.Schema({
         trim: true
     },
     service: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service',
+        required: [true, 'Service is required']
+    },
+    serviceName: {
         type: String,
-        required: [true, 'Service is required'],
+        required: true,
         trim: true
     },
     amount: {
@@ -37,7 +42,16 @@ const saleSchema = new mongoose.Schema({
     city: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        set: function(value) {
+            // Normalize city names: trim, capitalize first letter of each word
+            if (!value) return value;
+            return value.trim()
+                .toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
     },
     notes: {
         type: String,
@@ -72,5 +86,6 @@ const saleSchema = new mongoose.Schema({
 saleSchema.index({ seller: 1, date: -1 });
 saleSchema.index({ city: 1 });
 saleSchema.index({ status: 1 });
+saleSchema.index({ service: 1 });
 
 module.exports = mongoose.model('Sale', saleSchema);

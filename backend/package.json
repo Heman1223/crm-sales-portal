@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
+    "seed:services": "node src/seedServices.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "install:frontend": "cd ../frontend && npm install",
     "build:frontend": "cd ../frontend && npm run build",

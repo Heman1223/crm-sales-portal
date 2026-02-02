@@ -109,16 +109,12 @@ const SalesPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Get service commission rate if available
-            const selectedService = services.find(s => s.name === formData.service);
-
             const saleData = {
                 client: formData.client,
-                service: formData.service,
+                service: formData.service, // This is now the service ID
                 amount: Number(formData.amount),
                 city: formData.city || user?.city || 'Unknown',
-                notes: formData.notes,
-                commissionRate: selectedService?.commissionRate
+                notes: formData.notes
             };
 
             // Admin can assign seller
@@ -155,7 +151,7 @@ const SalesPage = () => {
     const resetForm = () => {
         setFormData({
             client: '',
-            service: services.length > 0 ? services[0].name : '',
+            service: services.length > 0 ? services[0]._id : '',
             amount: '',
             city: user?.city || '',
             notes: '',
@@ -168,7 +164,7 @@ const SalesPage = () => {
         setEditingSale(sale);
         setFormData({
             client: sale.client,
-            service: sale.service,
+            service: sale.service?._id || sale.service,
             amount: sale.amount.toString(),
             city: sale.city,
             notes: sale.notes || '',
@@ -246,7 +242,7 @@ const SalesPage = () => {
             )
         },
         { header: 'Client', accessor: 'client' },
-        { header: 'Service', accessor: 'service' },
+        { header: 'Service', render: (row) => row.service?.name || row.serviceName || 'Unknown Service' },
         {
             header: 'Amount',
             render: (row) => `₹${(row.amount || 0).toLocaleString()}`
@@ -498,7 +494,7 @@ const SalesPage = () => {
                                     <select
                                         value={formData.service}
                                         onChange={(e) => {
-                                            const service = services.find(s => s.name === e.target.value);
+                                            const service = services.find(s => s._id === e.target.value);
                                             setFormData({
                                                 ...formData,
                                                 service: e.target.value,
@@ -509,8 +505,8 @@ const SalesPage = () => {
                                     >
                                         <option value="">Select Service</option>
                                         {services.map(service => (
-                                            <option key={service._id} value={service.name}>
-                                                {service.name} {service.basePrice ? `(₹${service.basePrice.toLocaleString()})` : ''}
+                                            <option key={service._id} value={service._id}>
+                                                {service.name}
                                             </option>
                                         ))}
                                     </select>

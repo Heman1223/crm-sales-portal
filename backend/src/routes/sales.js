@@ -23,7 +23,7 @@ router.get('/', protect, async (req, res) => {
 
         if (status) query.status = status;
         if (city) query.city = { $regex: city, $options: 'i' };
-        if (service) query.service = service;
+        if (service) query.serviceName = { $regex: service, $options: 'i' };
         if (startDate || endDate) {
             query.date = {};
             if (startDate) query.date.$gte = new Date(startDate);
@@ -38,6 +38,7 @@ router.get('/', protect, async (req, res) => {
 
         const sales = await Sale.find(query)
             .populate('seller', 'name email city commissionRate')
+            .populate('service', 'name category commissionRate basePrice')
             .populate('approvedBy', 'name')
             .sort({ date: -1 })
             .limit(parseInt(limit));
@@ -51,22 +52,20 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   GET /api/sales/stats
-// @desc    Get sales statistics (ONLY APPROVED SALES)
+// @desc    Get sales statistics (ONLY APPROVED SALES + PENDING REVENUE)
 // @access  Private
 router.get('/stats', protect, async (req, res) => {
     try {
-        let matchQuery = {
-            status: 'Approved' // Only count approved sales
-        };
+        let matchQuery = {};
 
         // Sellers only see their own stats
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
         }
 
-        // Overall stats - only approved sales
-        const overallStats = await Sale.aggregate([
-            { $match: matchQuery },
+        // Approved sales stats
+        const approvedStats = await Sale.aggregate([
+            { $match: { ...matchQuery, status: 'Approved' } },
             {
                 $group: {
                     _id: null,
@@ -78,9 +77,21 @@ router.get('/stats', protect, async (req, res) => {
             }
         ]);
 
+        // Pending sales stats (pipeline revenue)
+        const pendingStats = await Sale.aggregate([
+            { $match: { ...matchQuery, status: 'Pending' } },
+            {
+                $group: {
+                    _id: null,
+                    pendingRevenue: { $sum: '$amount' },
+                    pendingSales: { $sum: 1 }
+                }
+            }
+        ]);
+
         // Monthly revenue (last 12 months) - only approved sales
         const monthlyRevenue = await Sale.aggregate([
-            { $match: matchQuery },
+            { $match: { ...matchQuery, status: 'Approved' } },
             {
                 $group: {
                     _id: {
@@ -96,8 +107,15 @@ router.get('/stats', protect, async (req, res) => {
             { $limit: 12 }
         ]);
 
+        const approved = approvedStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0, approvedSales: 0 };
+        const pending = pendingStats[0] || { pendingRevenue: 0, pendingSales: 0 };
+
         res.json({
-            overall: overallStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0, approvedSales: 0 },
+            overall: {
+                ...approved,
+                pendingRevenue: pending.pendingRevenue,
+                pendingSales: pending.pendingSales
+            },
             monthly: monthlyRevenue
         });
     } catch (error) {
@@ -137,11 +155,18 @@ router.post('/', protect, async (req, res) => {
         console.log('Sales POST - User:', req.user?.name, 'Role:', req.user?.role);
         console.log('Sales POST - Body:', JSON.stringify(req.body));
 
-        const { client, service, amount, city, notes, commissionRate } = req.body;
+        const { client, service, amount, city, notes } = req.body;
 
         // Validate required fields
         if (!client || !service || !amount) {
             return res.status(400).json({ message: 'Client, service, and amount are required' });
+        }
+
+        // Get service details for commission rate
+        const Service = require('../models/Service');
+        const serviceDoc = await Service.findById(service);
+        if (!serviceDoc || !serviceDoc.isActive) {
+            return res.status(400).json({ message: 'Invalid or inactive service selected' });
         }
 
         // Determine seller
@@ -158,14 +183,18 @@ router.post('/', protect, async (req, res) => {
             }
         }
 
+        // Use service commission rate if available, otherwise use seller's rate
+        const commissionRate = serviceDoc.commissionRate || sellerCommissionRate;
+
         const saleData = {
             seller: sellerId,
             client,
-            service,
+            service: serviceDoc._id,
+            serviceName: serviceDoc.name,
             amount,
             city: city || req.user.city || 'Unknown',
             notes,
-            commissionRate: commissionRate || sellerCommissionRate,
+            commissionRate: commissionRate,
             status: 'Pending', // Always start as Pending
             commission: 0 // Commission is 0 until approved
         };
@@ -176,7 +205,9 @@ router.post('/', protect, async (req, res) => {
 
         // NOTE: NO target updates here - targets are only updated upon approval
 
-        const populatedSale = await Sale.findById(sale._id).populate('seller', 'name email city');
+        const populatedSale = await Sale.findById(sale._id)
+            .populate('seller', 'name email city')
+            .populate('service', 'name category commissionRate');
 
         res.status(201).json(populatedSale);
     } catch (error) {
@@ -194,11 +225,11 @@ router.post('/', protect, async (req, res) => {
 });
 
 // @route   POST /api/sales/:id/approve
-// @desc    Approve a sale (admin only) - calculates commission and updates targets
+// @desc    Approve a sale (admin only) - calculates commission using service rate and updates targets
 // @access  Private/Admin
 router.post('/:id/approve', protect, adminOnly, async (req, res) => {
     try {
-        const sale = await Sale.findById(req.params.id);
+        const sale = await Sale.findById(req.params.id).populate('service', 'commissionRate name');
 
         if (!sale) {
             return res.status(404).json({ message: 'Sale not found' });
@@ -208,13 +239,14 @@ router.post('/:id/approve', protect, adminOnly, async (req, res) => {
             return res.status(400).json({ message: 'Only pending sales can be approved' });
         }
 
-        // Calculate commission
-        const commissionRate = sale.commissionRate || 10;
+        // Calculate commission using service-specific rate if available
+        const commissionRate = sale.service?.commissionRate || sale.commissionRate || 10;
         const commission = sale.amount * (commissionRate / 100);
 
         // Update sale to approved
         sale.status = 'Approved';
         sale.commission = commission;
+        sale.commissionRate = commissionRate; // Update with final rate used
         sale.approvedAt = new Date();
         sale.approvedBy = req.user._id;
 
@@ -222,7 +254,7 @@ router.post('/:id/approve', protect, adminOnly, async (req, res) => {
 
         // Update target achieved amounts
         const saleDate = new Date(sale.date);
-        const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(sale.service);
+        const isPremium = ['Premium CRM Package', 'Enterprise Suite'].includes(sale.serviceName);
 
         await Target.findOneAndUpdate(
             {
@@ -241,9 +273,10 @@ router.post('/:id/approve', protect, adminOnly, async (req, res) => {
 
         const populatedSale = await Sale.findById(sale._id)
             .populate('seller', 'name email city')
+            .populate('service', 'name category commissionRate')
             .populate('approvedBy', 'name');
 
-        console.log('Sale approved:', sale._id, 'by', req.user.name);
+        console.log('Sale approved:', sale._id, 'by', req.user.name, 'with commission rate:', commissionRate + '%');
 
         res.json({
             message: 'Sale approved successfully',

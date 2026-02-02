@@ -11,6 +11,11 @@ const serviceSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    category: {
+        type: String,
+        required: [true, 'Service category is required'],
+        trim: true
+    },
     basePrice: {
         type: Number,
         default: 0,
@@ -31,5 +36,9 @@ const serviceSchema = new mongoose.Schema({
         default: Date.now
     }
 });
+
+// Index for efficient category queries
+serviceSchema.index({ category: 1, isActive: 1 });
+serviceSchema.index({ commissionRate: -1 });
 
 module.exports = mongoose.model('Service', serviceSchema);

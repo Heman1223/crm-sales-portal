@@ -66,7 +66,7 @@ router.post('/login', async (req, res) => {
 // @access  Public for first admin, then Admin only
 router.post('/register', async (req, res) => {
     try {
-        const { name, email, password, role, city, phone } = req.body;
+        const { name, email, password, role, city, address, phone } = req.body;
 
         // Check if user exists
         const existingUser = await User.findOne({ email });
@@ -85,6 +85,7 @@ router.post('/register', async (req, res) => {
             password,
             role: userRole,
             city,
+            address,
             phone
         });
 
@@ -94,6 +95,7 @@ router.post('/register', async (req, res) => {
             email: user.email,
             role: user.role,
             city: user.city,
+            address: user.address,
             token: generateToken(user._id)
         });
     } catch (error) {
@@ -130,11 +132,11 @@ router.get('/me', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res) => {
     try {
-        const { name, phone, city } = req.body;
+        const { name, phone, city, address } = req.body;
 
         const user = await User.findByIdAndUpdate(
             req.user._id,
-            { name, phone, city },
+            { name, phone, city, address },
             { new: true, runValidators: true }
         );
 

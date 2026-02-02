@@ -16,6 +16,7 @@ import ReportsPage from './pages/ReportsPage';
 import SettingsPage from './pages/SettingsPage';
 import HelpPage from './pages/HelpPage';
 import ServicesPage from './pages/ServicesPage';
+import ServicesListingPage from './pages/ServicesListingPage';
 import './styles/styles.css';
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
                 <Route path="/performance" element={<PerformancePage />} />
                 <Route path="/targets" element={<TargetsPage />} />
                 <Route path="/sales" element={<SalesPage />} />
+                <Route path="/services-listing" element={<ServicesListingPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/help" element={<HelpPage />} />
               </Route>

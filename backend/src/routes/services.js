@@ -5,19 +5,95 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   GET /api/services
-// @desc    Get all services
+// @desc    Get all services with filtering and sorting
 // @access  Private
 router.get('/', protect, async (req, res) => {
     try {
-        const { includeInactive } = req.query;
+        const { includeInactive, category, sortBy = 'name', sortOrder = 'asc' } = req.query;
 
         let query = {};
         if (includeInactive !== 'true') {
             query.isActive = true;
         }
+        if (category) {
+            query.category = { $regex: category, $options: 'i' };
+        }
 
-        const services = await Service.find(query).sort({ name: 1 });
+        // Build sort object
+        const sortObj = {};
+        if (sortBy === 'commission') {
+            sortObj.commissionRate = sortOrder === 'desc' ? -1 : 1;
+        } else if (sortBy === 'price') {
+            sortObj.basePrice = sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        }
+
+        const services = await Service.find(query).sort(sortObj);
         res.json(services);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// @route   GET /api/services/categories
+// @desc    Get all service categories
+// @access  Private
+router.get('/categories', protect, async (req, res) => {
+    try {
+        const categories = await Service.distinct('category', { isActive: true });
+        res.json(categories.sort());
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+});
+
+// @route   GET /api/services/rate-card
+// @desc    Get services formatted as rate card with filtering
+// @access  Private
+router.get('/rate-card', protect, async (req, res) => {
+    try {
+        const { category, search, sortBy = 'category', sortOrder = 'asc' } = req.query;
+
+        let query = { isActive: true };
+        if (category) {
+            query.category = { $regex: category, $options: 'i' };
+        }
+        if (search) {
+            query.$or = [
+                { name: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Build sort object
+        const sortObj = {};
+        if (sortBy === 'commission') {
+            sortObj.commissionRate = sortOrder === 'desc' ? -1 : 1;
+        } else if (sortBy === 'price') {
+            sortObj.basePrice = sortOrder === 'desc' ? -1 : 1;
+        } else {
+            sortObj[sortBy] = sortOrder === 'desc' ? -1 : 1;
+        }
+
+        const services = await Service.find(query).sort(sortObj);
+
+        // Group by category for better presentation
+        const groupedServices = services.reduce((acc, service) => {
+            const category = service.category;
+            if (!acc[category]) {
+                acc[category] = [];
+            }
+            acc[category].push(service);
+            return acc;
+        }, {});
+
+        res.json({
+            services,
+            groupedServices,
+            totalServices: services.length,
+            categories: Object.keys(groupedServices).sort()
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -28,10 +104,10 @@ router.get('/', protect, async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, adminOnly, async (req, res) => {
     try {
-        const { name, description, basePrice, commissionRate } = req.body;
+        const { name, description, category, basePrice, commissionRate } = req.body;
 
-        if (!name) {
-            return res.status(400).json({ message: 'Service name is required' });
+        if (!name || !category) {
+            return res.status(400).json({ message: 'Service name and category are required' });
         }
 
         // Check if service exists
@@ -41,8 +117,9 @@ router.post('/', protect, adminOnly, async (req, res) => {
         }
 
         const service = await Service.create({
-            name,
-            description,
+            name: name.trim(),
+            description: description?.trim(),
+            category: category.trim(),
             basePrice: basePrice || 0,
             commissionRate: commissionRate || 10
         });
@@ -58,11 +135,12 @@ router.post('/', protect, adminOnly, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, adminOnly, async (req, res) => {
     try {
-        const { name, description, basePrice, commissionRate, isActive } = req.body;
+        const { name, description, category, basePrice, commissionRate, isActive } = req.body;
 
         const updateData = {};
-        if (name !== undefined) updateData.name = name;
-        if (description !== undefined) updateData.description = description;
+        if (name !== undefined) updateData.name = name.trim();
+        if (description !== undefined) updateData.description = description?.trim();
+        if (category !== undefined) updateData.category = category.trim();
         if (basePrice !== undefined) updateData.basePrice = basePrice;
         if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
         if (isActive !== undefined) updateData.isActive = isActive;

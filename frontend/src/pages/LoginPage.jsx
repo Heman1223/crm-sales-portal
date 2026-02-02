@@ -14,6 +14,7 @@ const LoginPage = () => {
     email: '',
     password: '',
     city: '',
+    address: '',
     phone: ''
   });
 
@@ -53,7 +54,8 @@ const LoginPage = () => {
         setError(result.error);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Login/Register error:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -206,6 +208,26 @@ const LoginPage = () => {
                         value={formData.city}
                         onChange={handleChange}
                         placeholder="Enter your city"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="address">Address</label>
+                    <div className="input-wrapper">
+                      <MapPin className="input-icon" size={18} />
+                      <textarea
+                        id="address"
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        placeholder="Enter your full address"
+                        rows={2}
+                        style={{ 
+                          paddingLeft: '48px',
+                          resize: 'vertical',
+                          minHeight: '44px'
+                        }}
                       />
                     </div>
                   </div>
@@ -453,14 +475,28 @@ const LoginPage = () => {
           transition: all var(--transition-fast);
         }
 
-        .input-wrapper input:focus {
+        .input-wrapper textarea {
+          width: 100%;
+          padding: 14px 16px 14px 48px;
+          border: 1px solid var(--accent-beige);
+          border-radius: var(--radius-md);
+          font-size: 0.95rem;
+          color: var(--text-primary);
+          background: var(--bg-main);
+          transition: all var(--transition-fast);
+          font-family: inherit;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper textarea:focus {
           outline: none;
           border-color: var(--primary-brand);
           background: var(--bg-white);
           box-shadow: 0 0 0 3px rgba(122, 74, 46, 0.1);
         }
 
-        .input-wrapper input::placeholder {
+        .input-wrapper input::placeholder,
+        .input-wrapper textarea::placeholder {
           color: var(--text-muted);
         }
 

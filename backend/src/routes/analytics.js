@@ -6,30 +6,52 @@ const { protect, adminOnly } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // @route   GET /api/analytics/dashboard
-// @desc    Get dashboard stats (ONLY APPROVED SALES)
+// @desc    Get dashboard stats with historical data support (ONLY APPROVED SALES + PENDING REVENUE)
 // @access  Private
 router.get('/dashboard', protect, async (req, res) => {
     try {
-        let matchQuery = {
-            status: 'Approved' // Only count approved sales
-        };
+        const { month, year } = req.query;
+        
+        let matchQuery = {};
 
         if (req.user.role === 'seller') {
             matchQuery.seller = req.user._id;
         }
 
-        // Current month stats
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        // Date range for selected period
+        let startOfPeriod, endOfPeriod, startOfLastPeriod, endOfLastPeriod;
+        
+        if (month && year) {
+            // Specific month/year requested
+            const selectedMonth = parseInt(month) - 1; // JS months are 0-indexed
+            const selectedYear = parseInt(year);
+            
+            startOfPeriod = new Date(selectedYear, selectedMonth, 1);
+            endOfPeriod = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999);
+            
+            // Previous month for comparison
+            const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
+            const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
+            startOfLastPeriod = new Date(prevYear, prevMonth, 1);
+            endOfLastPeriod = new Date(prevYear, prevMonth + 1, 0, 23, 59, 59, 999);
+        } else {
+            // Current month (default)
+            const now = new Date();
+            startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1);
+            endOfPeriod = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+            
+            // Last month for comparison
+            startOfLastPeriod = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endOfLastPeriod = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        }
 
-        // This month stats - only approved sales
-        const thisMonthStats = await Sale.aggregate([
+        // Current period stats - approved sales only
+        const currentPeriodStats = await Sale.aggregate([
             {
                 $match: {
                     ...matchQuery,
-                    date: { $gte: startOfMonth }
+                    status: 'Approved',
+                    date: { $gte: startOfPeriod, $lte: endOfPeriod }
                 }
             },
             {
@@ -42,12 +64,31 @@ router.get('/dashboard', protect, async (req, res) => {
             }
         ]);
 
-        // Last month stats - only approved sales
-        const lastMonthStats = await Sale.aggregate([
+        // Current period pending revenue
+        const currentPendingStats = await Sale.aggregate([
             {
                 $match: {
                     ...matchQuery,
-                    date: { $gte: startOfLastMonth, $lte: endOfLastMonth }
+                    status: 'Pending',
+                    date: { $gte: startOfPeriod, $lte: endOfPeriod }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    pendingRevenue: { $sum: '$amount' },
+                    pendingSales: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Last period stats - approved sales only
+        const lastPeriodStats = await Sale.aggregate([
+            {
+                $match: {
+                    ...matchQuery,
+                    status: 'Approved',
+                    date: { $gte: startOfLastPeriod, $lte: endOfLastPeriod }
                 }
             },
             {
@@ -70,28 +111,37 @@ router.get('/dashboard', protect, async (req, res) => {
         }
 
         // Calculate trends
-        const thisMonth = thisMonthStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0 };
-        const lastMonth = lastMonthStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0 };
+        const currentPeriod = currentPeriodStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0 };
+        const currentPending = currentPendingStats[0] || { pendingRevenue: 0, pendingSales: 0 };
+        const lastPeriod = lastPeriodStats[0] || { totalRevenue: 0, totalCommission: 0, totalSales: 0 };
 
-        const revenueTrend = lastMonth.totalRevenue > 0
-            ? ((thisMonth.totalRevenue - lastMonth.totalRevenue) / lastMonth.totalRevenue * 100).toFixed(1)
+        const revenueTrend = lastPeriod.totalRevenue > 0
+            ? ((currentPeriod.totalRevenue - lastPeriod.totalRevenue) / lastPeriod.totalRevenue * 100).toFixed(1)
             : 0;
-        const salesTrend = lastMonth.totalSales > 0
-            ? ((thisMonth.totalSales - lastMonth.totalSales) / lastMonth.totalSales * 100).toFixed(1)
+        const salesTrend = lastPeriod.totalSales > 0
+            ? ((currentPeriod.totalSales - lastPeriod.totalSales) / lastPeriod.totalSales * 100).toFixed(1)
             : 0;
-        const commissionTrend = lastMonth.totalCommission > 0
-            ? ((thisMonth.totalCommission - lastMonth.totalCommission) / lastMonth.totalCommission * 100).toFixed(1)
+        const commissionTrend = lastPeriod.totalCommission > 0
+            ? ((currentPeriod.totalCommission - lastPeriod.totalCommission) / lastPeriod.totalCommission * 100).toFixed(1)
             : 0;
 
         res.json({
-            thisMonth,
-            lastMonth,
+            thisMonth: {
+                ...currentPeriod,
+                pendingRevenue: currentPending.pendingRevenue,
+                pendingSales: currentPending.pendingSales
+            },
+            lastMonth: lastPeriod,
             trends: {
                 revenue: parseFloat(revenueTrend),
                 sales: parseFloat(salesTrend),
                 commission: parseFloat(commissionTrend)
             },
-            activeSellers
+            activeSellers,
+            selectedPeriod: {
+                month: month ? parseInt(month) : new Date().getMonth() + 1,
+                year: year ? parseInt(year) : new Date().getFullYear()
+            }
         });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -145,14 +195,21 @@ router.get('/revenue', protect, async (req, res) => {
 });
 
 // @route   GET /api/analytics/cities
-// @desc    Get city-wise performance (admin only, ONLY APPROVED SALES)
+// @desc    Get city-wise performance with filtering and sorting (admin only, ONLY APPROVED SALES)
 // @access  Private/Admin
 router.get('/cities', protect, adminOnly, async (req, res) => {
     try {
+        const { sortBy = 'revenue', sortOrder = 'desc', city } = req.query;
+
+        let matchQuery = { status: 'Approved' }; // Only count approved sales
+        
+        // Filter by specific city if provided
+        if (city) {
+            matchQuery.city = { $regex: city, $options: 'i' };
+        }
+
         const cityStats = await Sale.aggregate([
-            {
-                $match: { status: 'Approved' } // Only count approved sales
-            },
+            { $match: matchQuery },
             {
                 $group: {
                     _id: '$city',
@@ -161,7 +218,13 @@ router.get('/cities', protect, adminOnly, async (req, res) => {
                     salesCount: { $sum: 1 }
                 }
             },
-            { $sort: { totalRevenue: -1 } }
+            {
+                $sort: {
+                    [sortBy === 'commission' ? 'totalCommission' : 
+                     sortBy === 'sales' ? 'salesCount' : 'totalRevenue']: 
+                    sortOrder === 'desc' ? -1 : 1
+                }
+            }
         ]);
 
         // Format to match frontend expectations

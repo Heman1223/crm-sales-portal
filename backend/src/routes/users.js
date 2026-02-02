@@ -111,7 +111,7 @@ router.get('/:id', protect, async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, adminOnly, async (req, res) => {
     try {
-        const { name, email, password, city, phone, commissionRate } = req.body;
+        const { name, email, password, city, address, phone, commissionRate } = req.body;
 
         // Validate required fields
         if (!name || !email || !password) {
@@ -130,6 +130,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
             password,
             role: 'seller',
             city,
+            address,
             phone,
             commissionRate: commissionRate || 10
         });
@@ -140,6 +141,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
             email: user.email,
             role: user.role,
             city: user.city,
+            address: user.address,
             phone: user.phone,
             commissionRate: user.commissionRate,
             isActive: user.isActive
@@ -154,11 +156,12 @@ router.post('/', protect, adminOnly, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, adminOnly, async (req, res) => {
     try {
-        const { name, city, phone, isActive, commissionRate, password } = req.body;
+        const { name, city, address, phone, isActive, commissionRate, password } = req.body;
 
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (city !== undefined) updateData.city = city;
+        if (address !== undefined) updateData.address = address;
         if (phone !== undefined) updateData.phone = phone;
         if (isActive !== undefined) updateData.isActive = isActive;
         if (commissionRate !== undefined) updateData.commissionRate = commissionRate;

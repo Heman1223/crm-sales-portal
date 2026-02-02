@@ -27,6 +27,19 @@ const userSchema = new mongoose.Schema({
     },
     city: {
         type: String,
+        trim: true,
+        set: function(value) {
+            // Normalize city names: trim, capitalize first letter of each word
+            if (!value) return value;
+            return value.trim()
+                .toLowerCase()
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+    },
+    address: {
+        type: String,
         trim: true
     },
     phone: {

@@ -73,6 +73,8 @@ export const salesAPI = {
 // Services API
 export const servicesAPI = {
     getAll: (params) => api.get('/services', { params }),
+    getCategories: () => api.get('/services/categories'),
+    getRateCard: (params) => api.get('/services/rate-card', { params }),
     create: (data) => api.post('/services', data),
     update: (id, data) => api.put(`/services/${id}`, data),
     delete: (id) => api.delete(`/services/${id}`)
@@ -80,14 +82,15 @@ export const servicesAPI = {
 
 // Analytics API
 export const analyticsAPI = {
-    getDashboard: () => api.get('/analytics/dashboard'),
+    getDashboard: (params) => api.get('/analytics/dashboard', { params }),
     getRevenue: () => api.get('/analytics/revenue'),
-    getCities: () => api.get('/analytics/cities'),
+    getCities: (params) => api.get('/analytics/cities', { params }),
     getTopPerformers: (limit = 10, params = {}) => api.get('/analytics/top-performers', {
         params: { limit, ...params }
     }),
     getSalesDistribution: () => api.get('/analytics/sales-distribution'),
-    getWeekly: () => api.get('/analytics/weekly')
+    getWeekly: () => api.get('/analytics/weekly'),
+    getCityTeam: () => api.get('/analytics/city-team')
 };
 
 // Targets API

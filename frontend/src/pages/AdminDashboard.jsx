@@ -6,7 +6,10 @@ import {
     ShoppingCart,
     Calendar,
     Download,
-    MoreHorizontal
+    MoreHorizontal,
+    ChevronLeft,
+    ChevronRight,
+    Clock
 } from 'lucide-react';
 import { analyticsAPI, salesAPI } from '../utils/api';
 import StatCard from '../components/dashboard/StatCard';
@@ -21,8 +24,12 @@ import {
 
 const AdminDashboard = () => {
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear()
+    });
     const [dashboardData, setDashboardData] = useState({
-        thisMonth: { totalRevenue: 0, totalCommission: 0, totalSales: 0 },
+        thisMonth: { totalRevenue: 0, totalCommission: 0, totalSales: 0, pendingRevenue: 0, pendingSales: 0 },
         trends: { revenue: 0, sales: 0, commission: 0 },
         activeSellers: 0
     });
@@ -35,7 +42,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         fetchDashboardData();
-    }, []);
+    }, [selectedDate]);
 
     const fetchDashboardData = async () => {
         try {
@@ -48,7 +55,7 @@ const AdminDashboard = () => {
                 salesRes,
                 weeklyRes
             ] = await Promise.all([
-                analyticsAPI.getDashboard(),
+                analyticsAPI.getDashboard({ month: selectedDate.month, year: selectedDate.year }),
                 analyticsAPI.getRevenue(),
                 analyticsAPI.getCities(),
                 analyticsAPI.getSalesDistribution(),
@@ -71,30 +78,57 @@ const AdminDashboard = () => {
         }
     };
 
+    const navigateMonth = (direction) => {
+        setSelectedDate(prev => {
+            let newMonth = prev.month + direction;
+            let newYear = prev.year;
+            
+            if (newMonth > 12) {
+                newMonth = 1;
+                newYear += 1;
+            } else if (newMonth < 1) {
+                newMonth = 12;
+                newYear -= 1;
+            }
+            
+            return { month: newMonth, year: newYear };
+        });
+    };
+
+    const isCurrentMonth = () => {
+        const now = new Date();
+        return selectedDate.month === now.getMonth() + 1 && selectedDate.year === now.getFullYear();
+    };
+
+    const getMonthName = (month) => {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[month - 1];
+    };
+
     const stats = [
         {
             icon: DollarSign,
             value: `₹${dashboardData.thisMonth?.totalRevenue?.toLocaleString() || 0}`,
-            label: 'Total Revenue',
+            label: 'Approved Revenue',
             trend: dashboardData.trends?.revenue || 0,
             trendValue: `${dashboardData.trends?.revenue >= 0 ? '+' : ''}${dashboardData.trends?.revenue || 0}%`,
             footer: { text: 'vs last month', link: { href: '/reports', text: 'View Report' } }
         },
         {
+            icon: Clock,
+            value: `₹${dashboardData.thisMonth?.pendingRevenue?.toLocaleString() || 0}`,
+            label: 'Pending Revenue',
+            trend: 0,
+            trendValue: `${dashboardData.thisMonth?.pendingSales || 0} pending`,
+            footer: { text: 'awaiting approval' }
+        },
+        {
             icon: ShoppingCart,
             value: dashboardData.thisMonth?.totalSales?.toLocaleString() || 0,
-            label: 'Total Sales',
+            label: 'Approved Sales',
             trend: dashboardData.trends?.sales || 0,
             trendValue: `${dashboardData.trends?.sales >= 0 ? '+' : ''}${dashboardData.trends?.sales || 0}%`,
             footer: { text: 'vs last month' }
-        },
-        {
-            icon: Users,
-            value: dashboardData.activeSellers || 0,
-            label: 'Active Sellers',
-            trend: 0,
-            trendValue: '',
-            footer: { text: 'Active team members' }
         },
         {
             icon: TrendingUp,
@@ -163,10 +197,29 @@ const AdminDashboard = () => {
                         <h1>Admin Dashboard</h1>
                         <p>Welcome back! Here's an overview of your sales performance.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div className="btn btn-secondary btn-sm" style={{ cursor: 'default' }}>
-                            <Calendar size={16} />
-                            {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-white)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-beige)' }}>
+                            <button 
+                                className="btn btn-ghost btn-sm btn-icon"
+                                onClick={() => navigateMonth(-1)}
+                                style={{ padding: '4px' }}
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '120px', justifyContent: 'center' }}>
+                                <Calendar size={16} />
+                                <span style={{ fontWeight: '500' }}>
+                                    {getMonthName(selectedDate.month)} {selectedDate.year}
+                                </span>
+                            </div>
+                            <button 
+                                className="btn btn-ghost btn-sm btn-icon"
+                                onClick={() => navigateMonth(1)}
+                                disabled={isCurrentMonth()}
+                                style={{ padding: '4px' }}
+                            >
+                                <ChevronRight size={16} />
+                            </button>
                         </div>
                         <a href="/reports" className="btn btn-primary btn-sm">
                             <Download size={16} />

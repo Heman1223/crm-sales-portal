@@ -39,6 +39,7 @@ const LoginPage = () => {
   };
 
   const displayError = (errorMessage) => {
+    console.log('Displaying error:', errorMessage);
     setError(errorMessage);
     setShowError(true);
     
@@ -47,11 +48,12 @@ const LoginPage = () => {
       clearTimeout(errorTimeoutRef.current);
     }
     
-    // Keep error visible for 8 seconds
+    // Keep error visible for 10 seconds (increased from 8)
     errorTimeoutRef.current = setTimeout(() => {
+      console.log('Clearing error after timeout');
       setShowError(false);
       setError('');
-    }, 8000);
+    }, 10000);
   };
 
   const handleSubmit = async (e) => {
@@ -308,6 +310,10 @@ const LoginPage = () => {
                   onClick={() => {
                     setIsLogin(!isLogin);
                     setError('');
+                    setShowError(false);
+                    if (errorTimeoutRef.current) {
+                      clearTimeout(errorTimeoutRef.current);
+                    }
                   }}
                 >
                   {isLogin ? 'Register here' : 'Sign in'}

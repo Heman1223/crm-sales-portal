@@ -137,13 +137,6 @@ const SalesPage = () => {
             setSortOrder('desc');
         }
     };
-        return (
-            sale.client?.toLowerCase().includes(query) ||
-            sale.service?.toLowerCase().includes(query) ||
-            sale.seller?.name?.toLowerCase().includes(query) ||
-            sale.city?.toLowerCase().includes(query)
-        );
-    });
 
     const handleSubmit = async (e) => {
         e.preventDefault();

@@ -18,6 +18,9 @@ const TeamPage = () => {
     const [sellers, setSellers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState('name');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [cityFilter, setCityFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingSeller, setEditingSeller] = useState(null);
     const [showInactive, setShowInactive] = useState(false);
@@ -46,16 +49,59 @@ const TeamPage = () => {
         }
     };
 
-    // Client-side search
+    // Client-side search, filter, and sort
     const filteredSellers = sellers.filter(seller => {
-        if (!searchQuery) return true;
-        const query = searchQuery.toLowerCase();
-        return (
-            seller.name?.toLowerCase().includes(query) ||
-            seller.email?.toLowerCase().includes(query) ||
-            seller.city?.toLowerCase().includes(query)
-        );
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            const matchesSearch = (
+                seller.name?.toLowerCase().includes(query) ||
+                seller.email?.toLowerCase().includes(query) ||
+                seller.city?.toLowerCase().includes(query)
+            );
+            if (!matchesSearch) return false;
+        }
+        
+        // City filter
+        if (cityFilter && seller.city !== cityFilter) {
+            return false;
+        }
+        
+        return true;
+    }).sort((a, b) => {
+        let comparison = 0;
+        
+        switch (sortBy) {
+            case 'name':
+                comparison = (a.name || '').localeCompare(b.name || '');
+                break;
+            case 'city':
+                comparison = (a.city || '').localeCompare(b.city || '');
+                break;
+            case 'commissionRate':
+                comparison = (a.commissionRate || 0) - (b.commissionRate || 0);
+                break;
+            case 'totalSales':
+                comparison = (a.stats?.totalSales || 0) - (b.stats?.totalSales || 0);
+                break;
+            default:
+                comparison = (a.name || '').localeCompare(b.name || '');
+        }
+        
+        return sortOrder === 'desc' ? -comparison : comparison;
     });
+
+    const handleSortChange = (newSortBy) => {
+        if (sortBy === newSortBy) {
+            setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+        } else {
+            setSortBy(newSortBy);
+            setSortOrder('desc');
+        }
+    };
+
+    // Get unique cities for filter
+    const uniqueCities = [...new Set(sellers.map(s => s.city).filter(Boolean))].sort();
 
     const resetForm = () => {
         setFormData({
@@ -257,7 +303,7 @@ const TeamPage = () => {
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title">All Sellers</h3>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
                             <input
                                 type="checkbox"
@@ -266,7 +312,7 @@ const TeamPage = () => {
                             />
                             Show Inactive
                         </label>
-                        <div className="navbar-search" style={{ width: '100%', maxWidth: '280px' }}>
+                        <div className="navbar-search" style={{ width: '200px' }}>
                             <Search className="navbar-search-icon" />
                             <input
                                 type="text"
@@ -275,6 +321,38 @@ const TeamPage = () => {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
+                        <select
+                            value={cityFilter}
+                            onChange={(e) => setCityFilter(e.target.value)}
+                            className="select-input"
+                        >
+                            <option value="">All Cities</option>
+                            {uniqueCities.map(city => (
+                                <option key={city} value={city}>{city}</option>
+                            ))}
+                        </select>
+                        <div style={{ borderLeft: '1px solid var(--accent-beige)', height: '32px', margin: '0 4px' }}></div>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'commissionRate' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('commissionRate')}
+                            title="Sort by Commission Rate"
+                        >
+                            Commission {sortBy === 'commissionRate' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'totalSales' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('totalSales')}
+                            title="Sort by Total Sales"
+                        >
+                            Sales {sortBy === 'totalSales' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'city' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('city')}
+                            title="Sort by City"
+                        >
+                            City {sortBy === 'city' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
                     </div>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>

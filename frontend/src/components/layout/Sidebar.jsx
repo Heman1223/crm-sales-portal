@@ -97,6 +97,7 @@ const Sidebar = ({ userRole = 'admin', isOpen = false, onClose = () => { } }) =>
                             className={({ isActive }) =>
                                 `nav-item ${isActive ? 'active' : ''}`
                             }
+                            onClick={onClose}
                         >
                             <item.icon className="nav-item-icon" />
                             <span>{item.label}</span>
@@ -106,15 +107,15 @@ const Sidebar = ({ userRole = 'admin', isOpen = false, onClose = () => { } }) =>
 
                 <div className="nav-section">
                     <span className="nav-section-title">Settings</span>
-                    <NavLink to="/settings" className="nav-item">
+                    <NavLink to="/settings" className="nav-item" onClick={onClose}>
                         <Settings className="nav-item-icon" />
                         <span>Settings</span>
                     </NavLink>
-                    <NavLink to="/help" className="nav-item">
+                    <NavLink to="/help" className="nav-item" onClick={onClose}>
                         <HelpCircle className="nav-item-icon" />
                         <span>Help & Support</span>
                     </NavLink>
-                    <button onClick={handleLogout} className="nav-item logout-btn">
+                    <button onClick={() => { handleLogout(); onClose(); }} className="nav-item logout-btn">
                         <LogOut className="nav-item-icon" />
                         <span>Logout</span>
                     </button>

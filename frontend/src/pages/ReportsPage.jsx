@@ -60,7 +60,7 @@ const ReportsPage = () => {
                     Date: new Date(sale.date).toLocaleDateString('en-IN'),
                     Seller: sale.seller?.name || 'Unknown',
                     Client: sale.client,
-                    Service: sale.service,
+                    Service: sale.serviceName || sale.service?.name || 'Unknown',
                     City: sale.city,
                     Amount: sale.amount,
                     Commission: sale.commission,
@@ -70,9 +70,9 @@ const ReportsPage = () => {
                 const response = await analyticsAPI.getCities();
                 data = response.data.map(city => ({
                     City: city.city || 'Unknown',
-                    'Total Revenue': city.totalRevenue,
-                    'Total Commission': city.totalCommission,
-                    'Sales Count': city.salesCount
+                    'Total Revenue': city.revenue || city.totalRevenue || 0,
+                    'Total Commission': city.commission || city.totalCommission || 0,
+                    'Sales Count': city.salesCount || 0
                 }));
             } else if (reportType === 'performers') {
                 const response = await analyticsAPI.getTopPerformers(100);

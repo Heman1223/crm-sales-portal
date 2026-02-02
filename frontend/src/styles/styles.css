@@ -171,6 +171,14 @@ a:hover {
 .sidebar-header {
   padding: var(--space-lg);
   border-bottom: 1px solid var(--accent-beige);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Hide close button on desktop */
+.sidebar-close-btn {
+  display: none;
 }
 
 .sidebar-logo {
@@ -265,6 +273,15 @@ a:hover {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
+}
+
+.logout-btn {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 .sidebar-footer {

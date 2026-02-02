@@ -24,6 +24,8 @@ const SalesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingSale, setEditingSale] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
     const [filters, setFilters] = useState({
         status: '',
         city: '',
@@ -94,10 +96,47 @@ const SalesPage = () => {
         fetchSales();
     }, [filters]);
 
-    // Search filter (client-side for quick response)
+    // Search and sort filter (client-side for quick response)
     const filteredSales = sales.filter(sale => {
         if (!searchQuery) return true;
         const query = searchQuery.toLowerCase();
+        return (
+            sale.client?.toLowerCase().includes(query) ||
+            sale.serviceName?.toLowerCase().includes(query) ||
+            sale.seller?.name?.toLowerCase().includes(query) ||
+            sale.city?.toLowerCase().includes(query)
+        );
+    }).sort((a, b) => {
+        let comparison = 0;
+        
+        switch (sortBy) {
+            case 'amount':
+                comparison = (a.amount || 0) - (b.amount || 0);
+                break;
+            case 'commission':
+                comparison = (a.commission || 0) - (b.commission || 0);
+                break;
+            case 'date':
+                comparison = new Date(a.date) - new Date(b.date);
+                break;
+            case 'client':
+                comparison = (a.client || '').localeCompare(b.client || '');
+                break;
+            default:
+                comparison = new Date(a.date) - new Date(b.date);
+        }
+        
+        return sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    const handleSortChange = (newSortBy) => {
+        if (sortBy === newSortBy) {
+            setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+        } else {
+            setSortBy(newSortBy);
+            setSortOrder('desc');
+        }
+    };
         return (
             sale.client?.toLowerCase().includes(query) ||
             sale.service?.toLowerCase().includes(query) ||
@@ -386,7 +425,7 @@ const SalesPage = () => {
             <div className="card">
                 <div className="card-header">
                     <h3 className="card-title">Sales Transactions</h3>
-                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                         <div className="navbar-search" style={{ width: '200px' }}>
                             <Search className="navbar-search-icon" />
                             <input
@@ -430,6 +469,28 @@ const SalesPage = () => {
                             className="date-input"
                             placeholder="To"
                         />
+                        <div style={{ borderLeft: '1px solid var(--accent-beige)', height: '32px', margin: '0 4px' }}></div>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'amount' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('amount')}
+                            title="Sort by Revenue"
+                        >
+                            Revenue {sortBy === 'amount' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'commission' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('commission')}
+                            title="Sort by Commission"
+                        >
+                            Commission {sortBy === 'commission' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
+                        <button
+                            className={`btn btn-sm ${sortBy === 'date' ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleSortChange('date')}
+                            title="Sort by Date"
+                        >
+                            Date {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
+                        </button>
                     </div>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>

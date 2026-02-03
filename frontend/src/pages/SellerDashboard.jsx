@@ -44,7 +44,7 @@ const SellerDashboard = () => {
             ] = await Promise.all([
                 analyticsAPI.getDashboard({ month: selectedMonth, year: selectedYear }),
                 analyticsAPI.getRevenue({ month: selectedMonth, year: selectedYear }),
-                analyticsAPI.getTopPerformers(10),
+                analyticsAPI.getTopPerformers(10), // Backend already filters by city for sellers
                 salesAPI.getAll({ limit: 5 }),
                 targetsAPI.getCurrent()
             ]);
@@ -52,9 +52,8 @@ const SellerDashboard = () => {
             setDashboardData(dashboardRes.data);
             setRevenueData(revenueRes.data);
             
-            // Filter performers to only show sellers from the same city
-            const cityPerformers = performersRes.data.filter(p => p.city === user.city);
-            setTopPerformers(cityPerformers);
+            // Backend already filters performers by city for sellers, no need to filter again
+            setTopPerformers(performersRes.data);
 
             setRecentSales(salesRes.data);
 
@@ -62,8 +61,8 @@ const SellerDashboard = () => {
                 setCurrentTarget(targetsRes.data[0]);
             }
 
-            // Find my rank in my city
-            const rank = cityPerformers.findIndex(p => p._id === user._id);
+            // Find my rank in the city (backend already filtered by city)
+            const rank = performersRes.data.findIndex(p => p._id === user._id);
             setMyRank(rank >= 0 ? rank + 1 : null);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);

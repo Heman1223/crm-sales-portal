@@ -254,11 +254,9 @@ router.get('/top-performers', protect, async (req, res) => {
             status: 'Approved' // Only count approved sales
         };
 
-        // SELLER VISIBILITY: Sellers can only see performers from their own city
-        if (req.user.role === 'seller' && req.user.city) {
-            matchQuery.city = req.user.city;
-        } else if (city) {
-            // Admin can filter by specific city
+        // Don't filter by sale city for sellers - we'll filter by seller's city after lookup
+        if (req.user.role === 'admin' && city) {
+            // Admin can filter by specific city (sale city)
             matchQuery.city = { $regex: city, $options: 'i' };
         }
 
@@ -294,8 +292,6 @@ router.get('/top-performers', protect, async (req, res) => {
                     salesCount: { $sum: 1 }
                 }
             },
-            { $sort: { totalRevenue: -1 } },
-            { $limit: parseInt(limit) },
             {
                 $lookup: {
                     from: 'users',
@@ -317,6 +313,21 @@ router.get('/top-performers', protect, async (req, res) => {
                 }
             }
         ];
+
+        // CRITICAL FIX: Filter by seller's city AFTER lookup for sellers
+        if (req.user.role === 'seller' && req.user.city) {
+            pipeline.push({
+                $match: {
+                    city: req.user.city
+                }
+            });
+        }
+
+        // Sort and limit after city filtering
+        pipeline.push(
+            { $sort: { totalRevenue: -1 } },
+            { $limit: parseInt(limit) }
+        );
 
         const topPerformers = await Sale.aggregate(pipeline);
 

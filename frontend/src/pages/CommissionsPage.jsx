@@ -75,7 +75,7 @@ const CommissionsPage = () => {
             )
         },
         { header: 'Client', accessor: 'client' },
-        { header: 'Service', accessor: 'service' },
+        { header: 'Service', render: (row) => row.service?.name || row.serviceName || 'Unknown Service' },
         {
             header: 'Sale Amount',
             render: (row) => `₹${row.amount.toLocaleString()}`

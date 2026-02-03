@@ -4,7 +4,9 @@ import {
     Target,
     TrendingUp,
     Award,
-    Calendar
+    Calendar,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsAPI, salesAPI, targetsAPI } from '../utils/api';
@@ -15,6 +17,8 @@ import { TargetLineChart, CommissionBarChart } from '../components/dashboard/Cha
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [dashboardData, setDashboardData] = useState({
         thisMonth: { totalRevenue: 0, totalCommission: 0, totalSales: 0 },
         trends: { revenue: 0, sales: 0, commission: 0 }
@@ -27,7 +31,7 @@ const SellerDashboard = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [selectedMonth, selectedYear]);
 
     const fetchData = async () => {
         try {
@@ -38,8 +42,8 @@ const SellerDashboard = () => {
                 salesRes,
                 targetsRes
             ] = await Promise.all([
-                analyticsAPI.getDashboard(),
-                analyticsAPI.getRevenue(),
+                analyticsAPI.getDashboard({ month: selectedMonth, year: selectedYear }),
+                analyticsAPI.getRevenue({ month: selectedMonth, year: selectedYear }),
                 analyticsAPI.getTopPerformers(10),
                 salesAPI.getAll({ limit: 5 }),
                 targetsAPI.getCurrent()
@@ -47,15 +51,19 @@ const SellerDashboard = () => {
 
             setDashboardData(dashboardRes.data);
             setRevenueData(revenueRes.data);
-            setTopPerformers(performersRes.data);
+            
+            // Filter performers to only show sellers from the same city
+            const cityPerformers = performersRes.data.filter(p => p.city === user.city);
+            setTopPerformers(cityPerformers);
+
             setRecentSales(salesRes.data);
 
             if (targetsRes.data.length > 0) {
                 setCurrentTarget(targetsRes.data[0]);
             }
 
-            // Find my rank
-            const rank = performersRes.data.findIndex(p => p._id === user._id);
+            // Find my rank in my city
+            const rank = cityPerformers.findIndex(p => p._id === user._id);
             setMyRank(rank >= 0 ? rank + 1 : null);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -63,6 +71,33 @@ const SellerDashboard = () => {
             setLoading(false);
         }
     };
+
+    const handlePreviousMonth = () => {
+        if (selectedMonth === 1) {
+            setSelectedMonth(12);
+            setSelectedYear(selectedYear - 1);
+        } else {
+            setSelectedMonth(selectedMonth - 1);
+        }
+    };
+
+    const handleNextMonth = () => {
+        const currentDate = new Date();
+        const isCurrentMonth = selectedMonth === currentDate.getMonth() + 1 && selectedYear === currentDate.getFullYear();
+        
+        if (!isCurrentMonth) {
+            if (selectedMonth === 12) {
+                setSelectedMonth(1);
+                setSelectedYear(selectedYear + 1);
+            } else {
+                setSelectedMonth(selectedMonth + 1);
+            }
+        }
+    };
+
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const currentDate = new Date();
+    const isCurrentMonth = selectedMonth === currentDate.getMonth() + 1 && selectedYear === currentDate.getFullYear();
 
     const targetPercentage = currentTarget
         ? Math.round((currentTarget.achievedAmount / currentTarget.targetAmount) * 100)
@@ -130,13 +165,29 @@ const SellerDashboard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                     <div>
                         <h1>Welcome, {user?.name?.split(' ')[0] || 'Seller'}!</h1>
-                        <p>Track your sales performance, commissions, and rankings.</p>
+                        <p>Track your sales performance, commissions, and rankings in {user?.city || 'your city'}.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                        <span className="btn btn-secondary btn-sm">
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        <button 
+                            className="btn btn-secondary btn-sm btn-icon" 
+                            onClick={handlePreviousMonth}
+                            title="Previous Month"
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+                        <span className="btn btn-secondary btn-sm" style={{ minWidth: '150px', textAlign: 'center' }}>
                             <Calendar size={16} />
-                            {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+                            {monthNames[selectedMonth - 1]} {selectedYear}
                         </span>
+                        <button 
+                            className="btn btn-secondary btn-sm btn-icon" 
+                            onClick={handleNextMonth}
+                            disabled={isCurrentMonth}
+                            title="Next Month"
+                            style={{ opacity: isCurrentMonth ? 0.5 : 1 }}
+                        >
+                            <ChevronRight size={16} />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -216,7 +267,7 @@ const SellerDashboard = () => {
 
                 <div className="card">
                     <div className="card-header">
-                        <h3 className="card-title">Team Rankings</h3>
+                        <h3 className="card-title">{user?.city || 'City'} Rankings</h3>
                         {myRank && <span className="badge badge-success">Your Position: #{myRank}</span>}
                     </div>
                     <div className="card-body">
@@ -233,7 +284,7 @@ const SellerDashboard = () => {
                             />
                         ) : (
                             <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
-                                No ranking data available yet.
+                                No ranking data available yet for {user?.city || 'your city'}.
                             </p>
                         )}
                     </div>

@@ -40,7 +40,6 @@ const Sidebar = ({ userRole = 'admin', isOpen = false, onClose = () => { } }) =>
         { icon: DollarSign, label: 'Commissions', path: '/commissions' },
         { icon: Award, label: 'Performance', path: '/performance' },
         { icon: FileText, label: 'My Sales', path: '/seller/sales' },
-        { icon: Package, label: 'Services Rate Card', path: '/services-listing' },
     ];
 
     const navItems = userRole === 'admin' ? adminNavItems : sellerNavItems;

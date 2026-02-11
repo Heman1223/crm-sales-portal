@@ -26,11 +26,15 @@ router.get('/', protect, async (req, res) => {
         if (service) query.serviceName = { $regex: service, $options: 'i' };
         if (startDate || endDate) {
             query.date = {};
-            if (startDate) query.date.$gte = new Date(startDate);
+            if (startDate) {
+                // Parse as local date to avoid UTC timezone offset issues
+                const [sy, sm, sd] = startDate.split('-').map(Number);
+                query.date.$gte = new Date(sy, sm - 1, sd, 0, 0, 0, 0);
+            }
             if (endDate) {
-                const end = new Date(endDate);
-                end.setHours(23, 59, 59, 999);
-                query.date.$lte = end;
+                // Parse as local date and set to end of day
+                const [ey, em, ed] = endDate.split('-').map(Number);
+                query.date.$lte = new Date(ey, em - 1, ed, 23, 59, 59, 999);
             }
         }
 

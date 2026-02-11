@@ -7,7 +7,8 @@ import {
     DollarSign,
     X,
     Check,
-    XCircle
+    XCircle,
+    RefreshCw
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { salesAPI, usersAPI, servicesAPI } from '../utils/api';
@@ -108,7 +109,7 @@ const SalesPage = () => {
         );
     }).sort((a, b) => {
         let comparison = 0;
-        
+
         switch (sortBy) {
             case 'amount':
                 comparison = (a.amount || 0) - (b.amount || 0);
@@ -125,7 +126,7 @@ const SalesPage = () => {
             default:
                 comparison = new Date(a.date) - new Date(b.date);
         }
-        
+
         return sortOrder === 'desc' ? -comparison : comparison;
     });
 
@@ -484,6 +485,16 @@ const SalesPage = () => {
                         >
                             Date {sortBy === 'date' && (sortOrder === 'desc' ? '↓' : '↑')}
                         </button>
+                        {(sortBy !== 'date' || sortOrder !== 'desc') && (
+                            <button
+                                className="btn btn-sm btn-ghost"
+                                onClick={() => { setSortBy('date'); setSortOrder('desc'); }}
+                                title="Reset sorting to default"
+                            >
+                                <RefreshCw size={14} />
+                                Reset
+                            </button>
+                        )}
                     </div>
                 </div>
                 <div className="card-body" style={{ padding: 0 }}>

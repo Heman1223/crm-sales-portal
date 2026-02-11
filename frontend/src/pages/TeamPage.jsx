@@ -7,7 +7,9 @@ import {
     Trash2,
     RefreshCw,
     X,
-    Percent
+    Percent,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import { usersAPI } from '../utils/api';
 import DataTable from '../components/dashboard/DataTable';
@@ -23,7 +25,8 @@ const TeamPage = () => {
     const [cityFilter, setCityFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingSeller, setEditingSeller] = useState(null);
-    const [showInactive, setShowInactive] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('active');
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -35,12 +38,13 @@ const TeamPage = () => {
 
     useEffect(() => {
         fetchSellers();
-    }, [showInactive]);
+    }, []);
 
     const fetchSellers = async () => {
         setLoading(true);
         try {
-            const response = await usersAPI.getAll({ includeInactive: showInactive });
+            // Always fetch all users (including inactive) and filter client-side
+            const response = await usersAPI.getAll({ includeInactive: true });
             setSellers(response.data);
         } catch (error) {
             console.error('Error fetching sellers:', error);
@@ -61,16 +65,24 @@ const TeamPage = () => {
             );
             if (!matchesSearch) return false;
         }
-        
+
         // City filter
         if (cityFilter && seller.city !== cityFilter) {
             return false;
         }
-        
+
+        // Status filter (active/inactive)
+        if (statusFilter === 'active' && !seller.isActive) {
+            return false;
+        }
+        if (statusFilter === 'inactive' && seller.isActive !== false) {
+            return false;
+        }
+
         return true;
     }).sort((a, b) => {
         let comparison = 0;
-        
+
         switch (sortBy) {
             case 'name':
                 comparison = (a.name || '').localeCompare(b.name || '');
@@ -87,7 +99,7 @@ const TeamPage = () => {
             default:
                 comparison = (a.name || '').localeCompare(b.name || '');
         }
-        
+
         return sortOrder === 'desc' ? -comparison : comparison;
     });
 
@@ -304,14 +316,15 @@ const TeamPage = () => {
                 <div className="card-header">
                     <h3 className="card-title">All Sellers</h3>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem' }}>
-                            <input
-                                type="checkbox"
-                                checked={showInactive}
-                                onChange={(e) => setShowInactive(e.target.checked)}
-                            />
-                            Show Inactive
-                        </label>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="select-input"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
                         <div className="navbar-search" style={{ width: '200px' }}>
                             <Search className="navbar-search-icon" />
                             <input
@@ -409,14 +422,37 @@ const TeamPage = () => {
                                 </div>
                                 <div className="form-group">
                                     <label>{editingSeller ? 'New Password (leave blank to keep current)' : 'Password *'}</label>
-                                    <input
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        placeholder={editingSeller ? 'Leave blank to keep current' : 'Enter password'}
-                                        required={!editingSeller}
-                                        minLength={editingSeller ? 0 : 6}
-                                    />
+                                    <div style={{ position: 'relative' }}>
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            placeholder={editingSeller ? 'Leave blank to keep current' : 'Enter password'}
+                                            required={!editingSeller}
+                                            minLength={editingSeller ? 0 : 6}
+                                            style={{ paddingRight: '44px' }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            style={{
+                                                position: 'absolute',
+                                                right: '12px',
+                                                top: '50%',
+                                                transform: 'translateY(-50%)',
+                                                background: 'none',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                color: 'var(--text-muted)',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                padding: '4px'
+                                            }}
+                                            title={showPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">

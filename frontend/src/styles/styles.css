@@ -143,6 +143,19 @@ a:hover {
   color: var(--primary-dark);
 }
 
+/* Ensure anchor-based buttons keep their correct hover colors */
+a.btn:hover {
+  color: inherit;
+}
+
+a.btn-primary:hover {
+  color: var(--text-white);
+}
+
+a.btn-secondary:hover {
+  color: var(--text-white);
+}
+
 /* ============================================
    LAYOUT COMPONENTS
    ============================================ */
@@ -2947,29 +2960,30 @@ body {
 
 /* Improved mobile table handling */
 @media (max-width: 768px) {
+
   /* Better table scrolling */
   .card-body {
     padding: 0;
   }
-  
+
   .data-table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding: var(--space-md);
   }
-  
+
   /* Action buttons in tables - better mobile UX */
   .table-actions {
     display: flex;
     gap: 4px;
     flex-wrap: nowrap;
   }
-  
+
   .table-actions .btn {
     min-width: 36px;
     padding: 6px;
   }
-  
+
   /* Improved notification dropdown positioning */
   .notification-dropdown {
     position: fixed;
@@ -2979,48 +2993,48 @@ body {
     width: auto;
     max-width: none;
   }
-  
+
   /* Better form layout on mobile */
   .form-row {
     flex-direction: column;
     gap: var(--space-md);
   }
-  
+
   .form-group {
     width: 100%;
   }
-  
+
   /* Improved filter controls */
   .filters-row {
     flex-direction: column;
     gap: var(--space-sm);
     align-items: stretch;
   }
-  
-  .filters-row > * {
+
+  .filters-row>* {
     width: 100%;
   }
-  
+
   /* Better card spacing */
-  .card + .card {
+  .card+.card {
     margin-top: var(--space-md);
   }
-  
+
   /* Improved stats grid */
   .stats-grid {
     gap: var(--space-sm);
   }
-  
+
   /* Better service card layout */
   .services-grid {
     grid-template-columns: 1fr;
     gap: var(--space-md);
   }
-  
+
   .service-card {
     padding: var(--space-md);
   }
-  
+
   .service-card-header {
     flex-wrap: wrap;
     gap: var(--space-sm);
@@ -3032,27 +3046,27 @@ body {
   .page-content {
     padding: var(--space-sm);
   }
-  
+
   .card {
     margin: 0 calc(-1 * var(--space-sm));
     border-radius: 0;
     border-left: none;
     border-right: none;
   }
-  
+
   .card:first-child {
     border-top: none;
     margin-top: calc(-1 * var(--space-sm));
   }
-  
+
   .card:last-child {
     margin-bottom: calc(-1 * var(--space-sm));
   }
-  
+
   .stats-grid {
     margin: 0 calc(-1 * var(--space-sm));
   }
-  
+
   .stat-card {
     border-radius: 0;
     border-left: none;
@@ -3073,15 +3087,15 @@ body {
   .mobile-only {
     display: block;
   }
-  
+
   .desktop-only {
     display: none;
   }
-  
+
   .mobile-flex {
     display: flex;
   }
-  
+
   .mobile-hidden {
     display: none;
   }
@@ -3093,12 +3107,12 @@ body {
     min-width: 44px;
     min-height: 44px;
   }
-  
+
   .nav-item {
     min-height: 48px;
     padding: var(--space-md);
   }
-  
+
   /* Better dropdown positioning */
   .dropdown-menu {
     position: fixed;

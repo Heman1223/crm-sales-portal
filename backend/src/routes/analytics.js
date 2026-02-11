@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/dashboard', protect, async (req, res) => {
     try {
         const { month, year } = req.query;
-        
+
         let matchQuery = {};
 
         if (req.user.role === 'seller') {
@@ -20,15 +20,15 @@ router.get('/dashboard', protect, async (req, res) => {
 
         // Date range for selected period
         let startOfPeriod, endOfPeriod, startOfLastPeriod, endOfLastPeriod;
-        
+
         if (month && year) {
             // Specific month/year requested
             const selectedMonth = parseInt(month) - 1; // JS months are 0-indexed
             const selectedYear = parseInt(year);
-            
+
             startOfPeriod = new Date(selectedYear, selectedMonth, 1);
             endOfPeriod = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999);
-            
+
             // Previous month for comparison
             const prevMonth = selectedMonth === 0 ? 11 : selectedMonth - 1;
             const prevYear = selectedMonth === 0 ? selectedYear - 1 : selectedYear;
@@ -39,7 +39,7 @@ router.get('/dashboard', protect, async (req, res) => {
             const now = new Date();
             startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1);
             endOfPeriod = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-            
+
             // Last month for comparison
             startOfLastPeriod = new Date(now.getFullYear(), now.getMonth() - 1, 1);
             endOfLastPeriod = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
@@ -202,7 +202,7 @@ router.get('/cities', protect, adminOnly, async (req, res) => {
         const { sortBy = 'revenue', sortOrder = 'desc', city } = req.query;
 
         let matchQuery = { status: 'Approved' }; // Only count approved sales
-        
+
         // Filter by specific city if provided
         if (city) {
             matchQuery.city = { $regex: city, $options: 'i' };
@@ -220,9 +220,9 @@ router.get('/cities', protect, adminOnly, async (req, res) => {
             },
             {
                 $sort: {
-                    [sortBy === 'commission' ? 'totalCommission' : 
-                     sortBy === 'sales' ? 'salesCount' : 'totalRevenue']: 
-                    sortOrder === 'desc' ? -1 : 1
+                    [sortBy === 'commission' ? 'totalCommission' :
+                        sortBy === 'sales' ? 'salesCount' : 'totalRevenue']:
+                        sortOrder === 'desc' ? -1 : 1
                 }
             }
         ]);
@@ -254,14 +254,14 @@ router.get('/top-performers', protect, async (req, res) => {
             status: 'Approved' // Only count approved sales
         };
 
-        // Don't filter by sale city for sellers - we'll filter by seller's city after lookup
-        if (req.user.role === 'admin' && city) {
-            // Admin can filter by specific city (sale city)
-            matchQuery.city = { $regex: city, $options: 'i' };
-        }
+        // Don't filter by city here - we'll filter by seller's city after lookup
+        // This ensures city filter works against the seller's city, not sale city
 
         if (service) {
-            matchQuery.service = service;
+            // Fuzzy match service name to handle encoding issues (e.g. & vs &amp;)
+            // Replace non-word characters with .* to allow flexible matching
+            const fuzzyService = service.replace(/[^\w\s]/g, '.*');
+            matchQuery.serviceName = { $regex: fuzzyService, $options: 'i' };
         }
 
         if (period) {
@@ -314,11 +314,18 @@ router.get('/top-performers', protect, async (req, res) => {
             }
         ];
 
-        // CRITICAL FIX: Filter by seller's city AFTER lookup for sellers
+        // Filter by seller's city AFTER lookup
         if (req.user.role === 'seller' && req.user.city) {
             pipeline.push({
                 $match: {
                     city: req.user.city
+                }
+            });
+        } else if (req.user.role === 'admin' && city) {
+            // Admin city filter: match against the seller's city (from user lookup)
+            pipeline.push({
+                $match: {
+                    city: { $regex: `^${city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' }
                 }
             });
         }

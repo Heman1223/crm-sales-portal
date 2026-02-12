@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { authAPI } from '../utils/api';
+import { LOCATIONS, STATES } from '../utils/locations';
 
 const SettingsPage = () => {
     const { user, updateUser } = useAuth();
@@ -27,6 +28,7 @@ const SettingsPage = () => {
         name: '',
         email: '',
         phone: '',
+        state: '',
         city: ''
     });
 
@@ -50,6 +52,7 @@ const SettingsPage = () => {
                 name: user.name || '',
                 email: user.email || '',
                 phone: user.phone || '',
+                state: user.state || '',
                 city: user.city || ''
             });
             if (user.avatar) {
@@ -67,6 +70,7 @@ const SettingsPage = () => {
             const response = await authAPI.updateProfile({
                 name: profileData.name,
                 phone: profileData.phone,
+                state: profileData.state,
                 city: profileData.city
             });
 
@@ -290,18 +294,43 @@ const SettingsPage = () => {
                                             />
                                         </div>
 
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>
+                                                <MapPin size={16} />
+                                                State
+                                            </label>
+                                            <select
+                                                className="select-input"
+                                                value={profileData.state}
+                                                onChange={(e) => setProfileData({ ...profileData, state: e.target.value, city: '' })}
+                                                style={{ width: '100%', padding: '8px 12px' }}
+                                            >
+                                                <option value="">Select State</option>
+                                                {STATES.map(state => (
+                                                    <option key={state} value={state}>{state}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                         <div className="form-group">
                                             <label>
                                                 <MapPin size={16} />
                                                 City
                                             </label>
-                                            <input
-                                                type="text"
+                                            <select
+                                                className="select-input"
                                                 value={profileData.city}
                                                 onChange={(e) => setProfileData({ ...profileData, city: e.target.value })}
-                                                placeholder="Enter city"
-                                            />
+                                                style={{ width: '100%', padding: '8px 12px' }}
+                                                disabled={!profileData.state}
+                                            >
+                                                <option value="">Select City</option>
+                                                {profileData.state && LOCATIONS[profileData.state].map(city => (
+                                                    <option key={city} value={city}>{city}</option>
+                                                ))}
+                                            </select>
                                         </div>
+                                    </div>
                                     </div>
 
                                     <div className="form-actions">

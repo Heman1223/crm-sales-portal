@@ -42,9 +42,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
-    phone: {
+    state: {
         type: String,
         trim: true
+    },
+    phone: {
+        type: String,
+        trim: true,
+        unique: true,
+        sparse: true
     },
     avatar: {
         type: String,

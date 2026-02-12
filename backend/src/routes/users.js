@@ -61,8 +61,17 @@ router.get('/', protect, adminOnly, async (req, res) => {
 // @access  Private
 router.get('/cities/list', protect, async (req, res) => {
     try {
-        const cities = await User.distinct('city', { city: { $exists: true, $ne: null, $ne: '' } });
-        res.json(cities.filter(c => c));
+        // Use regex for more robust "not empty" check
+        const cities = await User.distinct('city', { 
+            city: { $ne: null, $regex: /.+/ } 
+        });
+        
+        // Final filter and sort for consistency
+        const sortedCities = cities
+            .filter(c => typeof c === 'string' && c.trim() !== '')
+            .sort();
+            
+        res.json(sortedCities);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -111,17 +120,25 @@ router.get('/:id', protect, async (req, res) => {
 // @access  Private/Admin
 router.post('/', protect, adminOnly, async (req, res) => {
     try {
-        const { name, email, password, city, address, phone, commissionRate } = req.body;
+        const { name, email, password, city, state, address, phone, commissionRate } = req.body;
 
         // Validate required fields
         if (!name || !email || !password) {
             return res.status(400).json({ message: 'Name, email, and password are required' });
         }
 
-        // Check if user exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        // Check if email exists
+        const existingEmail = await User.findOne({ email });
+        if (existingEmail) {
             return res.status(400).json({ message: 'User already exists with this email' });
+        }
+
+        // Check if phone exists
+        if (phone) {
+            const existingPhone = await User.findOne({ phone });
+            if (existingPhone) {
+                return res.status(400).json({ message: 'User already exists with this phone number' });
+            }
         }
 
         const user = await User.create({
@@ -130,6 +147,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
             password,
             role: 'seller',
             city,
+            state,
             address,
             phone,
             commissionRate: commissionRate || 10
@@ -141,6 +159,7 @@ router.post('/', protect, adminOnly, async (req, res) => {
             email: user.email,
             role: user.role,
             city: user.city,
+            state: user.state,
             address: user.address,
             phone: user.phone,
             commissionRate: user.commissionRate,
@@ -156,15 +175,24 @@ router.post('/', protect, adminOnly, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id', protect, adminOnly, async (req, res) => {
     try {
-        const { name, city, address, phone, isActive, commissionRate, password } = req.body;
+        const { name, city, state, address, phone, isActive, commissionRate, password } = req.body;
 
         const updateData = {};
         if (name !== undefined) updateData.name = name;
         if (city !== undefined) updateData.city = city;
+        if (state !== undefined) updateData.state = state;
         if (address !== undefined) updateData.address = address;
         if (phone !== undefined) updateData.phone = phone;
         if (isActive !== undefined) updateData.isActive = isActive;
         if (commissionRate !== undefined) updateData.commissionRate = commissionRate;
+
+        // Check if phone already exists for another user
+        if (phone) {
+            const existingPhone = await User.findOne({ phone, _id: { $ne: req.params.id } });
+            if (existingPhone) {
+                return res.status(400).json({ message: 'Phone number is already in use by another user' });
+            }
+        }
 
         let user = await User.findById(req.params.id);
 

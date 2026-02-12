@@ -14,6 +14,7 @@ import {
 import { usersAPI } from '../utils/api';
 import DataTable from '../components/dashboard/DataTable';
 import { useToast } from '../components/common/Toast';
+import { LOCATIONS, STATES } from '../utils/locations';
 
 const TeamPage = () => {
     const toast = useToast();
@@ -31,6 +32,7 @@ const TeamPage = () => {
         name: '',
         email: '',
         password: '',
+        state: '',
         city: '',
         phone: '',
         commissionRate: 10
@@ -54,7 +56,8 @@ const TeamPage = () => {
     };
 
     // Client-side search, filter, and sort
-    const filteredSellers = sellers.filter(seller => {
+    // Base sellers list filtered only by search and city (used for stats)
+    const baseFilteredSellers = sellers.filter(seller => {
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
@@ -71,6 +74,16 @@ const TeamPage = () => {
             return false;
         }
 
+        return true;
+    });
+
+    // Counts derived from base list (search + city aware, but status independent)
+    const totalSellersCount = baseFilteredSellers.length;
+    const activeSellersCount = baseFilteredSellers.filter(s => s.isActive).length;
+    const inactiveSellersCount = baseFilteredSellers.filter(s => !s.isActive).length;
+
+    // Final filtered list for the table (includes status filter and sorting)
+    const filteredSellers = baseFilteredSellers.filter(seller => {
         // Status filter (active/inactive)
         if (statusFilter === 'active' && !seller.isActive) {
             return false;
@@ -120,6 +133,7 @@ const TeamPage = () => {
             name: '',
             email: '',
             password: '',
+            state: '',
             city: '',
             phone: '',
             commissionRate: 10
@@ -132,6 +146,7 @@ const TeamPage = () => {
             const data = {
                 name: formData.name,
                 email: formData.email,
+                state: formData.state,
                 city: formData.city,
                 phone: formData.phone,
                 commissionRate: Number(formData.commissionRate)
@@ -166,6 +181,7 @@ const TeamPage = () => {
             name: seller.name,
             email: seller.email,
             password: '',
+            state: seller.state || '',
             city: seller.city || '',
             phone: seller.phone || '',
             commissionRate: seller.commissionRate || 10
@@ -268,8 +284,6 @@ const TeamPage = () => {
         }
     ];
 
-    const activeSellers = filteredSellers.filter(s => s.isActive);
-    const inactiveSellers = filteredSellers.filter(s => !s.isActive);
 
     return (
         <div>
@@ -292,21 +306,21 @@ const TeamPage = () => {
                     <div className="stat-card-header">
                         <div className="stat-card-icon"><Users /></div>
                     </div>
-                    <div className="stat-card-value">{sellers.length}</div>
+                    <div className="stat-card-value">{totalSellersCount}</div>
                     <div className="stat-card-label">Total Sellers</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">
                         <div className="stat-card-icon"><Users /></div>
                     </div>
-                    <div className="stat-card-value">{activeSellers.length}</div>
+                    <div className="stat-card-value">{activeSellersCount}</div>
                     <div className="stat-card-label">Active Sellers</div>
                 </div>
                 <div className="stat-card">
                     <div className="stat-card-header">
                         <div className="stat-card-icon"><Users /></div>
                     </div>
-                    <div className="stat-card-value">{inactiveSellers.length}</div>
+                    <div className="stat-card-value">{inactiveSellersCount}</div>
                     <div className="stat-card-label">Inactive Sellers</div>
                 </div>
             </div>
@@ -456,23 +470,43 @@ const TeamPage = () => {
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label>City</label>
-                                        <input
-                                            type="text"
-                                            value={formData.city}
-                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                            placeholder="Enter city"
-                                        />
+                                        <label>State</label>
+                                        <select
+                                            className="select-input"
+                                            value={formData.state}
+                                            onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })}
+                                            style={{ width: '100%' }}
+                                        >
+                                            <option value="">Select State</option>
+                                            {STATES.map(state => (
+                                                <option key={state} value={state}>{state}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="form-group">
-                                        <label>Phone</label>
-                                        <input
-                                            type="tel"
-                                            value={formData.phone}
-                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                            placeholder="Enter phone number"
-                                        />
+                                        <label>City</label>
+                                        <select
+                                            className="select-input"
+                                            value={formData.city}
+                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                            style={{ width: '100%' }}
+                                            disabled={!formData.state}
+                                        >
+                                            <option value="">Select City</option>
+                                            {formData.state && LOCATIONS[formData.state].map(city => (
+                                                <option key={city} value={city}>{city}</option>
+                                            ))}
+                                        </select>
                                     </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Phone</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        placeholder="Enter phone number"
+                                    />
                                 </div>
                                 <div className="form-group">
                                     <label>

@@ -2573,6 +2573,11 @@ a.btn-secondary:hover {
   color: var(--primary-brand);
 }
 
+.help-contact-actions .btn-primary:hover {
+  background: var(--primary-dark);
+  color: white;
+}
+
 .help-contact-actions .btn-secondary {
   background: rgba(255, 255, 255, 0.2);
   color: white;

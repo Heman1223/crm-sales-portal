@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Trophy, Award, Medal, Filter } from 'lucide-react';
 import { analyticsAPI, usersAPI, servicesAPI } from '../utils/api';
+import { useToast } from '../components/common/Toast';
 
 const PerformancePage = () => {
+    const toast = useToast();
     const [performers, setPerformers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({
@@ -28,6 +30,7 @@ const PerformancePage = () => {
             setCities(response.data || []);
         } catch (error) {
             console.error('Error fetching cities:', error);
+            toast.error('Failed to load cities');
         }
     };
 
@@ -37,6 +40,7 @@ const PerformancePage = () => {
             setServices(response.data || []);
         } catch (error) {
             console.error('Error fetching services:', error);
+            toast.error('Failed to load services');
         }
     };
 
@@ -50,8 +54,12 @@ const PerformancePage = () => {
 
             const response = await analyticsAPI.getTopPerformers(50, params);
             setPerformers(response.data);
+            if (response.data.length === 0) {
+                toast.info('No performers found for the selected filters');
+            }
         } catch (error) {
             console.error('Error fetching performers:', error);
+            toast.error('Failed to load leaderboard');
         } finally {
             setLoading(false);
         }

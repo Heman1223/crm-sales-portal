@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
     HelpCircle,
     MessageCircle,
@@ -12,6 +12,11 @@ import {
 
 const HelpPage = () => {
     const [openFaq, setOpenFaq] = useState(null);
+    const faqRef = useRef(null);
+
+    const scrollToFaq = () => {
+        faqRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     const faqs = [
         {
@@ -67,7 +72,7 @@ const HelpPage = () => {
                     </div>
                     <h3>User Guide</h3>
                     <p>Learn how to use all features of the CRM</p>
-                    <button className="btn btn-secondary btn-sm">
+                    <button className="btn btn-secondary btn-sm" onClick={scrollToFaq}>
                         View Guide <ExternalLink size={14} />
                     </button>
                 </div>
@@ -96,7 +101,7 @@ const HelpPage = () => {
             </div>
 
             {/* FAQ Section */}
-            <div className="card" style={{ marginTop: '24px' }}>
+            <div className="card" style={{ marginTop: '24px' }} ref={faqRef}>
                 <div className="card-header">
                     <h3 className="card-title">
                         <HelpCircle size={20} style={{ marginRight: '8px' }} />

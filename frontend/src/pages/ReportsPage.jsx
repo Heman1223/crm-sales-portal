@@ -7,8 +7,10 @@ import {
     Filter
 } from 'lucide-react';
 import { salesAPI, analyticsAPI, usersAPI } from '../utils/api';
+import { useToast } from '../components/common/Toast';
 
 const ReportsPage = () => {
+    const toast = useToast();
     const [reportType, setReportType] = useState('sales');
     const [dateRange, setDateRange] = useState({
         startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -39,6 +41,7 @@ const ReportsPage = () => {
             setCities(response.data || []);
         } catch (error) {
             console.error('Error fetching cities:', error);
+            toast.error('Failed to load cities');
         }
     };
 
@@ -88,41 +91,81 @@ const ReportsPage = () => {
             }
 
             setReportData(data);
+            if (data.length === 0) {
+                toast.info('No records found for the selected criteria');
+            }
         } catch (error) {
             console.error('Error generating report:', error);
             setReportData([]);
+            toast.error('Failed to generate report: ' + (error.response?.data?.message || error.message));
         } finally {
             setLoading(false);
         }
     };
 
     const exportToCSV = () => {
-        if (reportData.length === 0) {
-            alert('No data to export');
-            return;
+        try {
+            if (reportData.length === 0) {
+                toast.error('No data to export');
+                return;
+            }
+
+            toast.info('Preparing CSV export...');
+
+            const headers = Object.keys(reportData[0]);
+            // Prepare CSV rows with proper escaping
+            const csvRows = [
+                headers.join(','),
+                ...reportData.map(row =>
+                    headers.map(header => {
+                        let cell = row[header];
+                        // Handle null or undefined or objects
+                        if (cell === null || cell === undefined) {
+                            cell = '';
+                        }
+                        
+                        // Convert to string and escape for CSV
+                        let cellStr = String(cell);
+                        if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                            cellStr = `"${cellStr.replace(/"/g, '""')}"`;
+                        }
+                        return cellStr;
+                    }).join(',')
+                )
+            ];
+
+            // Combine rows with CRLF for better Excel compatibility
+            const csvString = csvRows.join('\r\n');
+            
+            // Add UTF-8 BOM for Excel compatibility with special characters
+            const BOM = '\uFEFF';
+            const blob = new Blob([BOM + csvString], { type: 'text/csv;charset=utf-8;' });
+            
+            const filename = `${reportType}_report_${dateRange.startDate}_to_${dateRange.endDate}.csv`;
+            
+            // Support for all modern browsers
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            
+            // Required for Firefox and some security extensions
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            
+            link.click();
+            
+            // Cleanup
+            setTimeout(() => {
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Report exported successfully');
+        } catch (error) {
+            console.error('CSV Export Error:', error);
+            toast.error('Failed to export CSV: ' + error.message);
         }
-
-        const headers = Object.keys(reportData[0]);
-        const csvContent = [
-            headers.join(','),
-            ...reportData.map(row =>
-                headers.map(header => {
-                    let cell = row[header];
-                    // Escape quotes and wrap in quotes if contains comma
-                    if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"'))) {
-                        cell = `"${cell.replace(/"/g, '""')}"`;
-                    }
-                    return cell;
-                }).join(',')
-            )
-        ].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `${reportType}_report_${dateRange.startDate}_to_${dateRange.endDate}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
     };
 
     const totalAmount = reportType === 'sales'

@@ -80,6 +80,7 @@ const SalesPage = () => {
             setSellers(response.data.filter(s => s.isActive));
         } catch (error) {
             console.error('Error fetching sellers:', error);
+            toast.error('Failed to load sellers');
         }
     };
 
@@ -89,6 +90,7 @@ const SalesPage = () => {
             setServices(response.data);
         } catch (error) {
             console.error('Error fetching services:', error);
+            toast.error('Failed to load services');
         }
     };
 

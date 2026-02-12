@@ -25,6 +25,7 @@ const ServicesPage = () => {
     const [formData, setFormData] = useState({
         name: '',
         description: '',
+        category: '',
         basePrice: '',
         commissionRate: 10
     });
@@ -59,6 +60,7 @@ const ServicesPage = () => {
         setFormData({
             name: '',
             description: '',
+            category: '',
             basePrice: '',
             commissionRate: 10
         });
@@ -70,6 +72,7 @@ const ServicesPage = () => {
             const data = {
                 name: formData.name,
                 description: formData.description,
+                category: formData.category,
                 basePrice: Number(formData.basePrice) || 0,
                 commissionRate: Number(formData.commissionRate) || 10
             };
@@ -96,6 +99,7 @@ const ServicesPage = () => {
         setFormData({
             name: service.name,
             description: service.description || '',
+            category: service.category || '',
             basePrice: service.basePrice?.toString() || '',
             commissionRate: service.commissionRate || 10
         });
@@ -136,6 +140,11 @@ const ServicesPage = () => {
                     </div>
                 </div>
             )
+        },
+        {
+            header: 'Category',
+            accessor: 'category',
+            render: (row) => row.category || '-'
         },
         {
             header: 'Base Price',
@@ -272,6 +281,16 @@ const ServicesPage = () => {
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                         placeholder="Enter service name"
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Category *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.category}
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        placeholder="Enter category (e.g. CRM, Training)"
                                         required
                                     />
                                 </div>

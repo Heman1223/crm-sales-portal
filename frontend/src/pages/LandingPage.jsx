@@ -543,26 +543,36 @@ const LandingPage = () => {
                 }
 
                 @media (max-width: 768px) {
-                    section { padding: 80px 25px; }
-                    .hero-section { padding-top: 140px; }
-                    .hero-content h1 { font-size: 3rem; }
-                    .hero-subtitle { font-size: 1.1rem; }
-                    .viz-grid, .features-grid { grid-template-columns: 1fr; gap: 25px; }
-                    .viz-card, .feature-item { padding: 35px; }
-                    .cta-gradient-card h2 { font-size: 2.5rem; }
-                    .btn-cta-white, .btn-cta-outline { width: 100%; padding: 15px 30px; }
-                    .cta-btns { flex-direction: column; gap: 15px; }
-                    .cta-gradient-card { padding: 80px 30px; }
+                    section { padding: 60px 20px; }
+                    .hero-section { padding-top: 120px; }
+                    .hero-content h1 { font-size: 2.8rem; }
+                    .hero-subtitle { font-size: 1.1rem; margin-bottom: 35px; }
+                    .section-header { margin-bottom: 60px; }
+                    .section-header h2 { font-size: 2.2rem; }
+                    .section-header p { font-size: 1.1rem; }
+                    .viz-grid, .features-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+                    .viz-card, .feature-item { padding: 25px; border-radius: 25px; }
+                    .viz-card h3 { font-size: 1.2rem; }
+                    .feature-item h4 { font-size: 1.1rem; }
+                    .viz-card p, .feature-item p { font-size: 0.85rem; margin-bottom: 20px; }
+                    .card-icon, .icon-box { width: 40px; height: 40px; margin-bottom: 15px; }
+                    .cta-gradient-card h2 { font-size: 2.2rem; }
+                    .btn-cta-white, .btn-cta-outline { width: 100%; padding: 15px 30px; font-size: 1rem; }
+                    .cta-btns { flex-direction: column; gap: 12px; }
+                    .cta-gradient-card { padding: 60px 25px; }
                 }
 
                 @media (max-width: 480px) {
-                    .hero-content h1 { font-size: 2.2rem; }
-                    .hero-subtitle { font-size: 1rem; }
-                    .hero-actions { flex-direction: column; gap: 15px; }
-                    .btn-primary, .btn-secondary { width: 100%; justify-content: center; padding: 15px 30px; }
-                    .cta-gradient-card h2 { font-size: 1.8rem; }
-                    .cta-gradient-card p { font-size: 1.1rem; }
-                    .badge { margin-bottom: 20px; }
+                    .hero-content h1 { font-size: 2rem; }
+                    .hero-subtitle { font-size: 0.95rem; }
+                    .section-header h2 { font-size: 1.8rem; }
+                    .hero-actions { flex-direction: column; gap: 12px; }
+                    .btn-primary, .btn-secondary { width: 100%; justify-content: center; padding: 14px 25px; font-size: 1rem; }
+                    .cta-gradient-card h2 { font-size: 1.6rem; }
+                    .cta-gradient-card p { font-size: 1rem; }
+                    .badge { margin-bottom: 15px; padding: 6px 15px; font-size: 0.7rem; }
+                    .viz-grid, .features-grid { gap: 10px; }
+                    .viz-card, .feature-item { padding: 15px; }
                 }
             `}</style>
         </div >

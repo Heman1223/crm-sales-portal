@@ -50,9 +50,11 @@ const Footer = () => {
             <div className="footer-hr-line"></div>
             <h5>Portfolio</h5>
             <ul className="external-links">
-              <li>• <a href="https://team-lead-32ha.vercel.app/login" target="_blank" rel="noopener noreferrer">TeamLead</a></li>
-              <li>• <a href="https://placement-management-system-six.vercel.app/" target="_blank" rel="noopener noreferrer">Placement Management System</a></li>
-              <li>• <a href="https://hr-portal-sage.vercel.app/" target="_blank" rel="noopener noreferrer">HR Portal</a></li>
+              <li>• <a href="https://Hrportal.avanienterprises.in" target="_blank" rel="noopener noreferrer">HR Portal</a></li>
+              <li>• <a href="https://Projectmanagement.avanienterprises.in" target="_blank" rel="noopener noreferrer">Project & Leads Management system</a></li>
+              <li>• <a href="https://placement-management-system-eight.vercel.app/login" target="_blank" rel="noopener noreferrer">Placement Management System</a></li>
+              <li>• <a href="https://placement-management-system-six.vercel.app" target="_blank" rel="noopener noreferrer">College students management with placement agency</a></li>
+              <li>• <a href="https://shoes-ecommerce-iota.vercel.app" target="_blank" rel="noopener noreferrer">Customised Ecommerce Solutions</a></li>
             </ul>
           </div>
 

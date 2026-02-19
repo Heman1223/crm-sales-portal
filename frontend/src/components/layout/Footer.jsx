@@ -48,7 +48,6 @@ const Footer = () => {
           <div className="footer-links footer-projects">
             <h4>Other Projects</h4>
             <div className="footer-hr-line"></div>
-            <h5>Portfolio</h5>
             <ul className="external-links">
               <li>• <a href="https://Hrportal.avanienterprises.in" target="_blank" rel="noopener noreferrer">HR Portal</a></li>
               <li>• <a href="https://Projectmanagement.avanienterprises.in" target="_blank" rel="noopener noreferrer">Project & Leads Management system</a></li>

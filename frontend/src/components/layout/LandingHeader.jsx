@@ -137,17 +137,28 @@ const LandingHeader = () => {
 
         @media (max-width: 600px) {
           .landing-header {
-            padding: 10px 20px;
+            padding: 10px 15px;
           }
           .landing-header.scrolled {
-            padding: 8px 20px;
+            padding: 8px 15px;
+          }
+          .landing-logo {
+            gap: 8px;
+          }
+          .landing-logo img {
+            width: 32px;
+            height: 32px;
           }
           .landing-logo h1 {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+          }
+          .landing-nav {
+            gap: 8px;
           }
           .btn-landing-nav {
-            padding: 6px 15px;
-            font-size: 0.8rem;
+            padding: 6px 12px;
+            font-size: 0.75rem;
           }
         }
       `}</style>

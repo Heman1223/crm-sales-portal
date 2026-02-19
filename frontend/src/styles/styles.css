@@ -1669,22 +1669,51 @@ a.btn-secondary:hover {
   }
 
   .chart-container {
-    height: 200px;
-    min-height: 200px;
+    height: 220px;
+    min-height: 220px;
   }
 
   .chart-container.large {
-    height: 250px;
-    min-height: 250px;
+    height: 280px;
+    min-height: 280px;
   }
 
-  /* Hide less critical navbar items */
-  .navbar-profile {
-    padding: var(--space-xs);
+  /* Dashboard Action Row */
+  .dashboard-header-actions {
+    width: 100%;
+    justify-content: space-between !important;
   }
 
-  .navbar-profile>svg {
-    display: none;
+  .dashboard-header-actions > * {
+    flex: 1;
+  }
+}
+
+/* Page header refinements */
+.page-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.page-header-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .page-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header-actions > * {
+    width: 100%;
   }
 }
 

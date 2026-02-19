@@ -45,6 +45,17 @@ const Footer = () => {
             </ul>
           </div>
 
+          <div className="footer-links">
+            <h4>Other Projects</h4>
+            <div className="footer-hr-line"></div>
+            <h5>Portfolio</h5>
+            <ul className="external-links">
+              <li>• <a href="https://team-lead-32ha.vercel.app/login" target="_blank" rel="noopener noreferrer">TeamLead</a></li>
+              <li>• <a href="https://placement-management-system-six.vercel.app/" target="_blank" rel="noopener noreferrer">Placement Management System</a></li>
+              <li>• <a href="https://hr-portal-sage.vercel.app/" target="_blank" rel="noopener noreferrer">HR Portal</a></li>
+            </ul>
+          </div>
+
           <div className="footer-map">
             <h4>Visit Us</h4>
             <div className="footer-hr-line"></div>
@@ -84,7 +95,7 @@ const Footer = () => {
 
         .footer-main {
           display: grid;
-          grid-template-columns: 1.5fr 1fr 1fr;
+          grid-template-columns: 1.5fr 1fr 1fr 1fr;
           gap: 40px;
           margin-bottom: 40px;
         }
@@ -179,6 +190,17 @@ const Footer = () => {
           font-size: 0.9rem;
           margin-bottom: 12px;
           opacity: 0.9;
+        }
+
+        .external-links li a {
+          color: white;
+          text-decoration: none;
+          transition: opacity 0.2s;
+        }
+
+        .external-links li a:hover {
+          opacity: 0.7;
+          text-decoration: underline;
         }
 
         .footer-bottom {

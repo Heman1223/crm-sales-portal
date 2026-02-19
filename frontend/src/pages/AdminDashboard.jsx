@@ -82,7 +82,7 @@ const AdminDashboard = () => {
         setSelectedDate(prev => {
             let newMonth = prev.month + direction;
             let newYear = prev.year;
-            
+
             if (newMonth > 12) {
                 newMonth = 1;
                 newYear += 1;
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
                 newMonth = 12;
                 newYear -= 1;
             }
-            
+
             return { month: newMonth, year: newYear };
         });
     };
@@ -192,31 +192,31 @@ const AdminDashboard = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                <div className="page-header-container">
                     <div>
                         <h1>Admin Dashboard</h1>
                         <p>Welcome back! Here's an overview of your sales performance.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-white)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-beige)' }}>
-                            <button 
+                    <div className="page-header-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-white)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-beige)', flex: 1 }}>
+                            <button
                                 className="btn btn-ghost btn-sm btn-icon"
                                 onClick={() => navigateMonth(-1)}
-                                style={{ padding: '4px' }}
+                                style={{ padding: '4px', minWidth: '32px', minHeight: '32px', width: '32px', height: '32px' }}
                             >
                                 <ChevronLeft size={16} />
                             </button>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '120px', justifyContent: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, justifyContent: 'center' }}>
                                 <Calendar size={16} />
-                                <span style={{ fontWeight: '500' }}>
+                                <span style={{ fontWeight: '500', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
                                     {getMonthName(selectedDate.month)} {selectedDate.year}
                                 </span>
                             </div>
-                            <button 
+                            <button
                                 className="btn btn-ghost btn-sm btn-icon"
                                 onClick={() => navigateMonth(1)}
                                 disabled={isCurrentMonth()}
-                                style={{ padding: '4px' }}
+                                style={{ padding: '4px', minWidth: '32px', minHeight: '32px', width: '32px', height: '32px' }}
                             >
                                 <ChevronRight size={16} />
                             </button>

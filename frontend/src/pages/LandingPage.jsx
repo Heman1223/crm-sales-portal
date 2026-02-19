@@ -539,14 +539,30 @@ const LandingPage = () => {
 
                 @media (max-width: 1100px) {
                     .viz-grid, .features-grid { grid-template-columns: repeat(2, 1fr); }
+                    .hero-content h1 { font-size: 4rem; }
                 }
 
                 @media (max-width: 768px) {
-                    .hero-content h1 { font-size: 3.5rem; }
-                    .viz-grid, .features-grid { grid-template-columns: 1fr; }
+                    section { padding: 80px 25px; }
+                    .hero-section { padding-top: 140px; }
+                    .hero-content h1 { font-size: 3rem; }
+                    .hero-subtitle { font-size: 1.1rem; }
+                    .viz-grid, .features-grid { grid-template-columns: 1fr; gap: 25px; }
+                    .viz-card, .feature-item { padding: 35px; }
                     .cta-gradient-card h2 { font-size: 2.5rem; }
-                    .btn-cta-white, .btn-cta-outline { width: 100%; }
-                    .cta-btns { flex-direction: column; }
+                    .btn-cta-white, .btn-cta-outline { width: 100%; padding: 15px 30px; }
+                    .cta-btns { flex-direction: column; gap: 15px; }
+                    .cta-gradient-card { padding: 80px 30px; }
+                }
+
+                @media (max-width: 480px) {
+                    .hero-content h1 { font-size: 2.2rem; }
+                    .hero-subtitle { font-size: 1rem; }
+                    .hero-actions { flex-direction: column; gap: 15px; }
+                    .btn-primary, .btn-secondary { width: 100%; justify-content: center; padding: 15px 30px; }
+                    .cta-gradient-card h2 { font-size: 1.8rem; }
+                    .cta-gradient-card p { font-size: 1.1rem; }
+                    .badge { margin-bottom: 20px; }
                 }
             `}</style>
         </div >

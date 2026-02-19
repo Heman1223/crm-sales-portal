@@ -526,15 +526,18 @@ const LoginPage = () => {
         }
 
         @media (max-width: 1024px) {
-          .login-branding-v2 {
-            display: none;
-          }
-          .login-visual-container {
-            max-width: 500px;
-          }
-          .login-branding-v2::after {
-            display: none;
-          }
+          .login-branding-v2 { display: none; }
+          .login-visual-container { max-width: 500px; }
+          .login-branding-v2::after { display: none; }
+        }
+
+        @media (max-width: 600px) {
+          .login-wrapper { padding-top: 90px; }
+          .login-form-container-v2 { padding: 40px 20px; }
+          .form-header-v2 h2 { font-size: 1.8rem; }
+          .form-header-v2 p { font-size: 0.9rem; }
+          .login-visual-container { border-radius: 0; min-height: auto; }
+          .login-main { padding: 0; }
         }
       `}</style>
     </div>

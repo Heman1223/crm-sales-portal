@@ -541,12 +541,17 @@ const RegisterPage = () => {
         }
 
         @media (max-width: 1024px) {
-          .login-branding-v2 {
-            display: none;
-          }
-          .login-visual-container {
-            max-width: 500px;
-          }
+          .login-branding-v2 { display: none; }
+          .login-visual-container { max-width: 500px; }
+        }
+
+        @media (max-width: 600px) {
+          .login-wrapper { padding-top: 90px; }
+          .login-form-container-v2 { padding: 40px 20px; }
+          .form-header-v2 h2 { font-size: 1.8rem; }
+          .form-row-v2 { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .login-visual-container { border-radius: 0; min-height: auto; }
+          .login-main { padding: 0; }
         }
       `}</style>
     </div>

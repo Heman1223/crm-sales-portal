@@ -51,7 +51,7 @@ const SellerDashboard = () => {
 
             setDashboardData(dashboardRes.data);
             setRevenueData(revenueRes.data);
-            
+
             // Backend already filters performers by city for sellers, no need to filter again
             setTopPerformers(performersRes.data);
 
@@ -83,7 +83,7 @@ const SellerDashboard = () => {
     const handleNextMonth = () => {
         const currentDate = new Date();
         const isCurrentMonth = selectedMonth === currentDate.getMonth() + 1 && selectedYear === currentDate.getFullYear();
-        
+
         if (!isCurrentMonth) {
             if (selectedMonth === 12) {
                 setSelectedMonth(1);
@@ -161,32 +161,35 @@ const SellerDashboard = () => {
     return (
         <div>
             <div className="page-header">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                <div className="page-header-container">
                     <div>
                         <h1>Welcome, {user?.name?.split(' ')[0] || 'Seller'}!</h1>
                         <p>Track your sales performance, commissions, and rankings in {user?.city || 'your city'}.</p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <button 
-                            className="btn btn-secondary btn-sm btn-icon" 
-                            onClick={handlePreviousMonth}
-                            title="Previous Month"
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-                        <span className="btn btn-secondary btn-sm" style={{ minWidth: '150px', textAlign: 'center' }}>
-                            <Calendar size={16} />
-                            {monthNames[selectedMonth - 1]} {selectedYear}
-                        </span>
-                        <button 
-                            className="btn btn-secondary btn-sm btn-icon" 
-                            onClick={handleNextMonth}
-                            disabled={isCurrentMonth}
-                            title="Next Month"
-                            style={{ opacity: isCurrentMonth ? 0.5 : 1 }}
-                        >
-                            <ChevronRight size={16} />
-                        </button>
+                    <div className="page-header-actions">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--bg-white)', padding: '8px 12px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-beige)', flex: 1 }}>
+                            <button
+                                className="btn btn-secondary btn-sm btn-icon"
+                                onClick={handlePreviousMonth}
+                                title="Previous Month"
+                                style={{ minWidth: '32px', minHeight: '32px', width: '32px', height: '32px' }}
+                            >
+                                <ChevronLeft size={16} />
+                            </button>
+                            <span style={{ flex: 1, textAlign: 'center', fontWeight: '500', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+                                <Calendar size={16} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
+                                {monthNames[selectedMonth - 1]} {selectedYear}
+                            </span>
+                            <button
+                                className="btn btn-secondary btn-sm btn-icon"
+                                onClick={handleNextMonth}
+                                disabled={isCurrentMonth}
+                                title="Next Month"
+                                style={{ opacity: isCurrentMonth ? 0.5 : 1, minWidth: '32px', minHeight: '32px', width: '32px', height: '32px' }}
+                            >
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

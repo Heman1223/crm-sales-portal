@@ -45,7 +45,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="footer-links">
+          <div className="footer-links footer-projects">
             <h4>Other Projects</h4>
             <div className="footer-hr-line"></div>
             <h5>Portfolio</h5>
@@ -194,6 +194,10 @@ const Footer = () => {
           opacity: 0.9;
         }
 
+        .footer-projects {
+          margin-left: -40px;
+        }
+
         .external-links li a {
           color: white;
           text-decoration: none;
@@ -225,6 +229,9 @@ const Footer = () => {
         @media (max-width: 992px) {
           .footer-main {
             grid-template-columns: 1fr 1fr;
+          }
+          .footer-projects {
+            margin-left: 0;
           }
         }
 

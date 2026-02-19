@@ -98,7 +98,7 @@ const LandingPage = () => {
                         <h3>Revenue Velocity</h3>
                         <p>Track your monthly recurring revenue and lead velocity in one unified dashboard.</p>
                         <div className="chart-wrapper">
-                            <ResponsiveContainer width="100%" height={250}>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={salesData}>
                                     <defs>
                                         <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -122,7 +122,7 @@ const LandingPage = () => {
                         <h3>Conversion Funnel</h3>
                         <p>Visualize your sales pipeline and identify bottlenecks before they affect your bottom line.</p>
                         <div className="chart-wrapper">
-                            <ResponsiveContainer width="100%" height={250}>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={leadData}>
                                     <Tooltip
                                         cursor={{ fill: 'rgba(122, 74, 46, 0.05)' }}
@@ -140,7 +140,7 @@ const LandingPage = () => {
                         <h3>Source Performance</h3>
                         <p>Analyze which channels bring the highest quality leads to optimize your marketing spend.</p>
                         <div className="chart-wrapper">
-                            <ResponsiveContainer width="100%" height={250}>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
                                         data={performanceData}
@@ -407,6 +407,11 @@ const LandingPage = () => {
                     opacity: 0.8;
                 }
 
+                .chart-wrapper {
+                    height: 250px;
+                    width: 100%;
+                }
+
                 .features-grid {
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
@@ -550,12 +555,14 @@ const LandingPage = () => {
                     .section-header { margin-bottom: 60px; }
                     .section-header h2 { font-size: 2.2rem; }
                     .section-header p { font-size: 1.1rem; }
-                    .viz-grid, .features-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-                    .viz-card, .feature-item { padding: 25px; border-radius: 25px; }
-                    .viz-card h3 { font-size: 1.2rem; }
-                    .feature-item h4 { font-size: 1.1rem; }
-                    .viz-card p, .feature-item p { font-size: 0.85rem; margin-bottom: 20px; }
-                    .card-icon, .icon-box { width: 40px; height: 40px; margin-bottom: 15px; }
+                    .viz-grid, .features-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+                    .viz-card, .feature-item { padding: 15px; border-radius: 20px; display: flex; flex-direction: column; }
+                    .viz-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+                    .feature-item h4 { font-size: 1.1rem; margin-bottom: 6px; }
+                    .viz-card p, .feature-item p { font-size: 0.8rem; margin-bottom: 12px; line-height: 1.4; }
+                    .chart-wrapper { height: 130px; }
+                    .card-icon, .icon-box { width: 32px; height: 32px; margin-bottom: 10px; padding: 6px; }
+                    .card-icon svg, .icon-box svg { width: 18px; height: 18px; }
                     .cta-gradient-card h2 { font-size: 2.2rem; }
                     .btn-cta-white, .btn-cta-outline { width: 100%; padding: 15px 30px; font-size: 1rem; }
                     .cta-btns { flex-direction: column; gap: 12px; }

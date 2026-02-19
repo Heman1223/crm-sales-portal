@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Lock, Mail, User, ShieldCheck, Clock, BarChart4, ChevronRight, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, MapPin, Phone, ShieldCheck, Clock, BarChart4, ChevronLeft, AlertCircle } from 'lucide-react';
 import LandingHeader from '../components/layout/LandingHeader';
 import Footer from '../components/layout/Footer';
+import { LOCATIONS, STATES } from '../utils/locations';
 
-const LoginPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,16 +17,14 @@ const LoginPage = () => {
     name: '',
     email: '',
     password: '',
+    state: '',
     city: '',
     address: '',
     phone: ''
   });
 
-  const { isAuthenticated, user, login, register } = useAuth();
+  const { isAuthenticated, user, register } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = location.state?.from?.pathname || '/';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -39,8 +37,13 @@ const LoginPage = () => {
   }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    // Clear error when user starts typing again
+    const { name, value } = e.target;
+    if (name === 'state') {
+      setFormData({ ...formData, state: value, city: '' });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+
     if (showError) {
       setShowError(false);
       setError('');
@@ -51,87 +54,41 @@ const LoginPage = () => {
   };
 
   const displayError = (errorMessage) => {
-    console.log('Displaying error:', errorMessage);
     setError(errorMessage);
     setShowError(true);
-
-    // Clear any existing timeout
     if (errorTimeoutRef.current) {
       clearTimeout(errorTimeoutRef.current);
     }
-
-    // Keep error visible for 10 seconds (increased from 8)
     errorTimeoutRef.current = setTimeout(() => {
-      console.log('Clearing error after timeout');
       setShowError(false);
       setError('');
     }, 10000);
   };
 
   const handleSubmit = async (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    // Prevent double submission
-    if (loading) {
-      console.log('Already loading, preventing double submission');
-      return false;
-    }
-
-    console.log('Form submitted, loading:', loading);
+    e.preventDefault();
+    if (loading) return;
 
     setLoading(true);
     setError('');
     setShowError(false);
 
-    // Clear any existing error timeout
-    if (errorTimeoutRef.current) {
-      clearTimeout(errorTimeoutRef.current);
-    }
-
     try {
-      let result;
-
-      if (isLogin) {
-        console.log('Attempting login...');
-        result = await login(formData.email, formData.password);
-        console.log('Login result:', result);
-      } else {
-        console.log('Attempting register...');
-        result = await register(formData);
-        console.log('Register result:', result);
-      }
-
+      const result = await register(formData);
       if (result && result.success) {
-        console.log('Success! Redirecting...');
-        // Clear any existing errors
-        setError('');
-        setShowError(false);
-        // Redirect based on role
         if (result.user.role === 'seller') {
           navigate('/seller');
-        } else if (result.user.role === 'admin') {
-          navigate(from === '/' || from === '/login' ? '/admin-dashboard' : from);
         } else {
-          navigate(from === '/login' ? '/' : from);
+          navigate('/admin-dashboard');
         }
       } else {
-        console.log('Login failed, showing error');
         setLoading(false);
-        // Display error with persistent timeout
-        displayError(result?.error || 'Invalid email or password. Please check your credentials and try again.');
-        return false; // Prevent any further action
+        displayError(result?.error || 'Registration failed. Please try again.');
       }
     } catch (err) {
-      console.error('Login/Register error:', err);
       setLoading(false);
-      displayError('Connection error. Please check your internet connection and try again.');
-      return false; // Prevent any further action
+      displayError('Connection error. Please try again later.');
     }
-
-    return false; // Prevent default form behavior
   };
 
   return (
@@ -140,48 +97,48 @@ const LoginPage = () => {
 
       <main className="login-main">
         <div className="login-visual-container">
-          {/* Left Side - Branding (Image 2 Style) */}
+          {/* Left Side - Branding */}
           <div className="login-branding-v2">
             <div className="branding-glass-card">
               <div className="branding-logo-v2">
                 <img src="/logo.jpeg" alt="HR Portal Logo" />
               </div>
               <h1 className="branding-title">SALES CRM</h1>
-              <p className="branding-subtitle">Driving Growth through Precision</p>
+              <p className="branding-subtitle">Join the High-Performance Sales Team</p>
               <p className="branding-desc">
-                Empowering your sales team with real-time performance tracking,
-                automated commission calculations, and comprehensive analytics.
+                Create your account to access the Avani Sales CRM.
+                Manage your leads, track your commissions, and exceed your targets.
               </p>
 
               <div className="branding-features-v2">
                 <div className="b-feature">
-                  <BarChart4 size={20} />
-                  <span>Sales Tracking</span>
+                  <ShieldCheck size={20} />
+                  <span>Global Sales</span>
                 </div>
                 <div className="b-feature">
-                  <ShieldCheck size={20} />
-                  <span>Commission Management</span>
+                  <BarChart4 size={20} />
+                  <span>Performance Analytics</span>
                 </div>
                 <div className="b-feature">
                   <Clock size={20} />
-                  <span>Monthly Targets</span>
+                  <span>Target Achievement</span>
                 </div>
               </div>
             </div>
 
             <div className="branding-arrow-separator">
-              <div className="arrow-circle" onClick={() => navigate('/register')} style={{ cursor: 'pointer' }}>
-                <ChevronRight size={32} />
+              <div className="arrow-circle" onClick={() => navigate('/login')} style={{ cursor: 'pointer' }}>
+                <ChevronLeft size={32} />
               </div>
             </div>
           </div>
 
-          {/* Right Side - Form (Image 2 Style) */}
+          {/* Right Side - Form */}
           <div className="login-form-container-v2">
             <div className="form-content-v2">
               <div className="form-header-v2">
-                <h2>Welcome Back!</h2>
-                <p>Sign in to continue</p>
+                <h2>Create Account</h2>
+                <p>Register to get started</p>
               </div>
 
               {showError && error && (
@@ -193,19 +150,31 @@ const LoginPage = () => {
 
               <form onSubmit={handleSubmit} className="login-form-v2">
                 <div className="form-group-v2">
-                  <label>Email Address</label>
+                  <label><User size={16} style={{ marginRight: '8px' }} />Full Name</label>
                   <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
+                    type="text"
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
-                    placeholder="you@example.com"
+                    placeholder="John Doe"
                     required
                   />
                 </div>
 
                 <div className="form-group-v2">
-                  <label>Password</label>
+                  <label><Mail size={16} style={{ marginRight: '8px' }} />Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="john@example.com"
+                    required
+                  />
+                </div>
+
+                <div className="form-group-v2">
+                  <label><Lock size={16} style={{ marginRight: '8px' }} />Password</label>
                   <div className="password-input-v2">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -214,6 +183,7 @@ const LoginPage = () => {
                       onChange={handleChange}
                       placeholder="••••••••"
                       required
+                      minLength={6}
                     />
                     <button
                       type="button"
@@ -225,17 +195,72 @@ const LoginPage = () => {
                   </div>
                 </div>
 
+                <div className="form-row-v2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div className="form-group-v2">
+                    <label><MapPin size={16} style={{ marginRight: '8px' }} />State</label>
+                    <select
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                      className="form-input-v2"
+                      required
+                    >
+                      <option value="">Select State</option>
+                      {STATES.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group-v2">
+                    <label><MapPin size={16} style={{ marginRight: '8px' }} />City</label>
+                    <select
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="form-input-v2"
+                      disabled={!formData.state}
+                      required
+                    >
+                      <option value="">Select City</option>
+                      {formData.state && LOCATIONS[formData.state].map(city => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group-v2">
+                  <label><Phone size={16} style={{ marginRight: '8px' }} />Phone</label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Phone Number"
+                  />
+                </div>
+
+                <div className="form-group-v2">
+                  <label><MapPin size={16} style={{ marginRight: '8px' }} />Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    placeholder="Full Address"
+                  />
+                </div>
+
                 <button
                   type="submit"
                   className="btn-login-v2"
                   disabled={loading}
                 >
-                  {loading ? 'Working...' : 'Login'}
+                  {loading ? 'Creating...' : 'Register'}
                 </button>
               </form>
 
               <div className="login-footer-links-v2">
-                <p>Don't have an account? <button onClick={() => navigate('/register')}>Register here</button></p>
+                <p>Already have an account? <button onClick={() => navigate('/login')}>Login here</button></p>
               </div>
             </div>
           </div>
@@ -249,7 +274,7 @@ const LoginPage = () => {
           min-height: 100vh;
           display: flex;
           flex-direction: column;
-          background-color: #FDF5E6; /* Cream background from image */
+          background-color: #FDF5E6;
           padding-top: 110px; /* Space for fixed header */
           padding-bottom: 40px;
         }
@@ -266,17 +291,16 @@ const LoginPage = () => {
           display: flex;
           width: 100%;
           max-width: 1100px;
-          min-height: 650px;
+          min-height: 750px;
           background: white;
           border-radius: 20px;
           overflow: hidden;
           box-shadow: 0 20px 50px rgba(122, 74, 46, 0.15);
         }
 
-        /* Branding Section */
         .login-branding-v2 {
           flex: 1.1;
-          background: #7A4A2E; /* Brand Brown */
+          background: #7A4A2E;
           position: relative;
           padding: 60px;
           display: flex;
@@ -345,11 +369,17 @@ const LoginPage = () => {
           padding: 12px 20px;
           background: rgba(255, 255, 255, 0.1);
           border-radius: 12px;
-          transition: all 0.3s ease;
         }
 
-        .b-feature:hover {
-          background: rgba(255, 255, 255, 0.2);
+        .login-branding-v2::after {
+          content: '';
+          position: absolute;
+          right: -40px;
+          top: 0;
+          height: 100%;
+          width: 80px;
+          background: #7A4A2E;
+          clip-path: polygon(0% 0%, 50% 0%, 100% 50%, 50% 100%, 0% 100%);
         }
 
         .branding-arrow-separator {
@@ -361,18 +391,6 @@ const LoginPage = () => {
           z-index: 5;
           display: flex;
           align-items: center;
-        }
-
-        /* Create the pointed shape with a pseudo-element */
-        .login-branding-v2::after {
-          content: '';
-          position: absolute;
-          right: -40px;
-          top: 0;
-          height: 100%;
-          width: 80px;
-          background: #7A4A2E;
-          clip-path: polygon(0% 0%, 50% 0%, 100% 50%, 50% 100%, 0% 100%);
         }
 
         .arrow-circle {
@@ -390,7 +408,6 @@ const LoginPage = () => {
           margin-left: -30px;
         }
 
-        /* Form Section */
         .login-form-container-v2 {
           flex: 1;
           background: white;
@@ -407,19 +424,18 @@ const LoginPage = () => {
 
         .form-header-v2 {
           text-align: center;
-          margin-bottom: 40px;
+          margin-bottom: 30px;
         }
 
         .form-header-v2 h2 {
           font-size: 2.2rem;
           color: #2D1A12;
           font-weight: 700;
-          margin-bottom: 10px;
+          margin-bottom: 5px;
         }
 
         .form-header-v2 p {
           color: #7A6A5A;
-          font-size: 1rem;
         }
 
         .login-error-v2 {
@@ -436,24 +452,24 @@ const LoginPage = () => {
         }
 
         .form-group-v2 {
-          margin-bottom: 25px;
+          margin-bottom: 15px;
         }
 
         .form-group-v2 label {
           display: block;
-          font-size: 0.9rem;
+          font-size: 0.85rem;
           font-weight: 600;
           color: #3B2A1A;
-          margin-bottom: 8px;
+          margin-bottom: 5px;
         }
 
-        .form-group-v2 input {
+        .form-group-v2 input, .form-group-v2 select {
           width: 100%;
-          padding: 14px 16px;
+          padding: 12px 14px;
           border: 1.5px solid #E6C9A8;
           border-radius: 8px;
-          font-size: 1rem;
-          transition: all 0.3s ease;
+          font-size: 0.95rem;
+          background-color: white;
         }
 
         .form-group-v2 input:focus {
@@ -468,7 +484,7 @@ const LoginPage = () => {
 
         .toggle-visibility {
           position: absolute;
-          right: 15px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
           background: none;
@@ -482,7 +498,7 @@ const LoginPage = () => {
           background: #7A4A2E;
           color: white;
           border: none;
-          padding: 16px;
+          padding: 14px;
           border-radius: 8px;
           font-size: 1rem;
           font-weight: 700;
@@ -503,7 +519,7 @@ const LoginPage = () => {
         }
 
         .login-footer-links-v2 {
-          margin-top: 30px;
+          margin-top: 25px;
           text-align: center;
         }
 
@@ -518,7 +534,6 @@ const LoginPage = () => {
           color: #7A4A2E;
           font-weight: 700;
           cursor: pointer;
-          text-decoration: none;
         }
 
         .login-footer-links-v2 button:hover {
@@ -532,13 +547,10 @@ const LoginPage = () => {
           .login-visual-container {
             max-width: 500px;
           }
-          .login-branding-v2::after {
-            display: none;
-          }
         }
       `}</style>
     </div>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;

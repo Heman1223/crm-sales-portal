@@ -2,6 +2,7 @@ const express = require('express');
 const Sale = require('../models/Sale');
 const User = require('../models/User');
 const Target = require('../models/Target');
+const Notification = require('../models/Notification');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 
 const router = express.Router();
@@ -213,6 +214,19 @@ router.post('/', protect, async (req, res) => {
             .populate('seller', 'name email city')
             .populate('service', 'name category commissionRate');
 
+        // Notify admins about new sale
+        const admins = await User.find({ role: 'admin' });
+        if (admins.length > 0) {
+            const notifications = admins.map(admin => ({
+                recipient: admin._id,
+                title: 'New Sale Submitted',
+                message: `${populatedSale.seller?.name || 'A seller'} submitted a sale of ₹${amount.toLocaleString()} for ${populatedSale.serviceName}`,
+                type: 'sale',
+                relatedId: sale._id
+            }));
+            await Notification.insertMany(notifications);
+        }
+
         res.status(201).json(populatedSale);
     } catch (error) {
         console.error('Sales POST Error:', error.message);
@@ -286,6 +300,15 @@ router.post('/:id/approve', protect, adminOnly, async (req, res) => {
             message: 'Sale approved successfully',
             sale: populatedSale
         });
+
+        // Notify seller about approval
+        await Notification.create({
+            recipient: sale.seller,
+            title: 'Sale Approved',
+            message: `Your sale of ₹${sale.amount.toLocaleString()} for ${sale.serviceName} has been approved.`,
+            type: 'sale',
+            relatedId: sale._id
+        });
     } catch (error) {
         console.error('Approve Sale Error:', error);
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -329,6 +352,15 @@ router.post('/:id/reject', protect, adminOnly, async (req, res) => {
         res.json({
             message: 'Sale rejected',
             sale: populatedSale
+        });
+
+        // Notify seller about rejection
+        await Notification.create({
+            recipient: sale.seller,
+            title: 'Sale Rejected',
+            message: `Your sale of ₹${sale.amount.toLocaleString()} for ${sale.serviceName} was rejected. Reason: ${rejectionReason || 'No reason provided'}`,
+            type: 'sale',
+            relatedId: sale._id
         });
     } catch (error) {
         console.error('Reject Sale Error:', error);

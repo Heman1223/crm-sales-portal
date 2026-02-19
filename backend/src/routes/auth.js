@@ -50,6 +50,8 @@ router.post('/login', async (req, res) => {
             email: user.email,
             role: user.role,
             city: user.city,
+            state: user.state,
+            address: user.address,
             phone: user.phone,
             avatar: user.avatar,
             commissionRate: user.commissionRate,
@@ -106,6 +108,7 @@ router.post('/register', async (req, res) => {
             city: user.city,
             state: user.state,
             address: user.address,
+            phone: user.phone,
             token: generateToken(user._id)
         });
     } catch (error) {
@@ -127,6 +130,7 @@ router.get('/me', protect, async (req, res) => {
             role: user.role,
             city: user.city,
             state: user.state,
+            address: user.address,
             phone: user.phone,
             avatar: user.avatar,
             commissionRate: user.commissionRate,

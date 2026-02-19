@@ -23,7 +23,7 @@ const Sidebar = ({ userRole = 'admin', isOpen = false, onClose = () => { } }) =>
     const navigate = useNavigate();
 
     const adminNavItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/admin-dashboard' },
         { icon: Users, label: 'Sales Team', path: '/team' },
         { icon: TrendingUp, label: 'Performance', path: '/performance' },
         { icon: DollarSign, label: 'Commissions', path: '/commissions' },

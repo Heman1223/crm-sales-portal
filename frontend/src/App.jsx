@@ -3,7 +3,13 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './components/common/Toast';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Layout from './components/layout/Layout';
+
+// Public Pages
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+
+// Private Pages
 import AdminDashboard from './pages/AdminDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import TeamPage from './pages/TeamPage';
@@ -17,6 +23,7 @@ import SettingsPage from './pages/SettingsPage';
 import HelpPage from './pages/HelpPage';
 import ServicesPage from './pages/ServicesPage';
 import ServicesListingPage from './pages/ServicesListingPage';
+
 import './styles/styles.css';
 
 function App() {
@@ -25,13 +32,15 @@ function App() {
       <ToastProvider>
         <Router>
           <Routes>
-            {/* Public Route - Login */}
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
             {/* Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route element={<Layout title="Admin Dashboard" />}>
-                <Route path="/" element={<AdminDashboard />} />
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 <Route path="/team" element={<TeamPage />} />
                 <Route path="/cities" element={<CitiesPage />} />
                 <Route path="/reports" element={<ReportsPage />} />
@@ -62,8 +71,8 @@ function App() {
               </Route>
             </Route>
 
-            {/* Catch all - redirect to login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Catch all - redirect to landing page if not auth, or login */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
       </ToastProvider>

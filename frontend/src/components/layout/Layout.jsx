@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import Footer from './Footer';
 import { useAuth } from '../../context/AuthContext';
 
 const Layout = ({ title = 'Dashboard' }) => {
@@ -52,6 +53,7 @@ const Layout = ({ title = 'Dashboard' }) => {
                 <div className="page-content">
                     <Outlet />
                 </div>
+                <Footer />
             </main>
         </div>
     );

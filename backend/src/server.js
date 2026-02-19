@@ -14,6 +14,7 @@ const salesRoutes = require('./routes/sales');
 const analyticsRoutes = require('./routes/analytics');
 const targetRoutes = require('./routes/targets');
 const serviceRoutes = require('./routes/services');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api/sales', salesRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/targets', targetRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

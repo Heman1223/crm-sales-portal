@@ -29,7 +29,8 @@ const SettingsPage = () => {
         email: '',
         phone: '',
         state: '',
-        city: ''
+        city: '',
+        address: ''
     });
 
     const [passwordData, setPasswordData] = useState({
@@ -53,7 +54,8 @@ const SettingsPage = () => {
                 email: user.email || '',
                 phone: user.phone || '',
                 state: user.state || '',
-                city: user.city || ''
+                city: user.city || '',
+                address: user.address || ''
             });
             if (user.avatar) {
                 setAvatarPreview(user.avatar);
@@ -71,7 +73,8 @@ const SettingsPage = () => {
                 name: profileData.name,
                 phone: profileData.phone,
                 state: profileData.state,
-                city: profileData.city
+                city: profileData.city,
+                address: profileData.address
             });
 
             updateUser(response.data);
@@ -280,19 +283,18 @@ const SettingsPage = () => {
                                         <small>Email cannot be changed</small>
                                     </div>
 
-                                    <div className="form-row">
-                                        <div className="form-group">
-                                            <label>
-                                                <Phone size={16} />
-                                                Phone Number
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                value={profileData.phone}
-                                                onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                                                placeholder="Enter phone number"
-                                            />
-                                        </div>
+                                    <div className="form-group">
+                                        <label>
+                                            <Phone size={16} />
+                                            Phone Number
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={profileData.phone}
+                                            onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                                            placeholder="Enter phone number"
+                                        />
+                                    </div>
 
                                     <div className="form-row">
                                         <div className="form-group">
@@ -331,6 +333,18 @@ const SettingsPage = () => {
                                             </select>
                                         </div>
                                     </div>
+
+                                    <div className="form-group">
+                                        <label>
+                                            <MapPin size={16} />
+                                            Full Address
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={profileData.address}
+                                            onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
+                                            placeholder="Enter your full street address"
+                                        />
                                     </div>
 
                                     <div className="form-actions">
@@ -429,9 +443,9 @@ const SettingsPage = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </div >
 
-        </div>
+        </div >
     );
 };
 
